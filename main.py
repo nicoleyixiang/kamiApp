@@ -1,3 +1,7 @@
+# Name: Nicole Xiang
+# Date: November 11th 2021
+# 112 TERM PROJECT: KAMI!
+
 from cmu_112_graphics import * 
 
 def appStarted(app):
