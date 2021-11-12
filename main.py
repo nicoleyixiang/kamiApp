@@ -5,8 +5,8 @@
 from cmu_112_graphics import * 
     
 def appStarted(app):
-    app.rows = 25
-    app.cols = 20
+    app.rows = 20
+    app.cols = 15
     app.margin = 10
     app.triangleSize = 0
     app.colors = {0: "maroon",
@@ -20,23 +20,31 @@ def appStarted(app):
     app.drawMode = False
     createBoard(app)
 
+def mouseDragged(app, event):
+    if app.drawMode:
+        (row, col) = getRowCol(app, event.x, event.y)
+        changeColor(app, row, col)
+    
 def mousePressed(app, event):
     x = event.x
     y = event.y
+    (row, col) = getRowCol(app, x, y)
     if not app.drawMode:
-        (row, col) = getRowCol(app, x, y)
         clickedColor = app.board[row][col]
-        # changeColor(app, row, col)
         flood(app, row, col, app.currColor, clickedColor)
         app.seen.clear()
     else:
-        return
+        changeColor(app, row, col)
 
 def keyPressed(app, event):
     if event.key == "r": app.currColor = 0
     elif event.key == "w": app.currColor = 1
     elif event.key == "b": app.currColor = 2
     elif event.key == "Space": app.drawMode = not app.drawMode
+    # elif event.key == "u": undoMove(app)
+
+def undoMove(app):
+    return
 
 def changeColor(app, row, col):
     if row <= app.rows and col <= app.cols:
@@ -52,33 +60,20 @@ def getRowCol(app, x, y):
     ycoordinate = getRowCoordinate(app, row)
     xdiff = x - xcoordinate
     ydiff = y - ycoordinate
-    print("first", row, col)
     if row % 2 == col % 2:
-        print("1!")
         if ydiff > xdiff: row = row + 1
     elif row % 2 != col % 2: 
-        print("2!")
         if xdiff > app.triangleSize or ydiff > app.triangleSize: row = row + 1
-    print(row, col)
     return (row, col)
 
 def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
-    app.board[4][2] = 2
-    app.board[3][2] = 2
-    app.board[4][1] = 2
-    for i in range(app.rows):
-        app.board[i][2] = 2
-    for i in range(app.rows):
-        app.board[i][8] = 1
-    for i in range(app.rows):
-        for j in range(app.cols):
-            if i == j:
-                app.board[i][j] = 1
         
 def printInfo(app, canvas):
-    canvas.create_text(200,550, text = app.colors[app.currColor]) 
-    canvas.create_text(250,550, text = app.drawMode)
+    canvas.create_text(200, 550, text = app.colors[app.currColor]) 
+    if app.drawMode: text = "draw mode"
+    else: text = "play mode"
+    canvas.create_text(300, 550, text = text)
 
 def redrawAll(app, canvas):
     drawBoard(app, canvas) 
