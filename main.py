@@ -17,20 +17,25 @@ def appStarted(app):
     app.board = []
     app.currColor = 1
     app.seen = set()
+    app.drawMode = False
     createBoard(app)
 
 def mousePressed(app, event):
     x = event.x
     y = event.y
-    (row, col) = getRowCol(app, x, y)
-    clickedColor = app.board[row][col]
-    flood(app, row, col, app.currColor, clickedColor)
-    app.seen.clear()
+    if not app.drawMode:
+        (row, col) = getRowCol(app, x, y)
+        clickedColor = app.board[row][col]
+        flood(app, row, col, app.currColor, clickedColor)
+        app.seen.clear()
+    else:
+        return
 
 def keyPressed(app, event):
     if event.key == "r": app.currColor = 0
     elif event.key == "w": app.currColor = 1
     elif event.key == "b": app.currColor = 2
+    elif event.key == "Space": app.drawMode = not app.drawMode
 
 def changeColor(app, row, col):
     if row <= app.rows and col <= app.cols:
@@ -39,8 +44,10 @@ def changeColor(app, row, col):
 def getRowCol(app, x, y):
     cellWidth  = app.width / app.cols
     cellHeight = app.height / app.rows
-    row = int((y) / cellHeight)
-    col = int((x) / cellWidth)
+    row = int((y) / cellHeight) 
+    col = int((x) / cellWidth) 
+    print(row, col)
+    # TODO fix getRowCol to properly account for the use of triangles
     return (row, col)
 
 def createBoard(app):
@@ -57,11 +64,15 @@ def createBoard(app):
             if i == j:
                 app.board[i][j] = 1
         
+def printInfo(app, canvas):
+    canvas.create_text(200,550, text = app.colors[app.currColor]) 
+    canvas.create_text(250,550, text = app.drawMode)
 
 def redrawAll(app, canvas):
     drawBoard(app, canvas) 
     canvas.create_rectangle(0, 500, app.width, app.height, fill = "white", 
                             outline = "black")
+    printInfo(app, canvas)
 
 def drawBoard(app, canvas):
     for row in range(app.rows):
@@ -84,7 +95,7 @@ def getColCoordinate(app, row):
 def drawLeftTriangle(app, canvas, row, col):
     x1 = getColCoordinate(app, col)
     x2 = getColCoordinate(app, col + 1)
-    topY = getRowCoordinate(app, row -1)
+    topY = getRowCoordinate(app, row - 1)
     midY = getRowCoordinate(app, row)
     endY = getRowCoordinate(app, row + 1)
     color = app.colors.get(app.board[row][col])
@@ -94,7 +105,7 @@ def drawLeftTriangle(app, canvas, row, col):
 def drawRightTriangle(app, canvas, row, col):
     x1 = getColCoordinate(app, col)
     x2 = getColCoordinate(app, col + 1)
-    topY = getRowCoordinate(app, row -1)
+    topY = getRowCoordinate(app, row - 1)
     midY = getRowCoordinate(app, row)
     endY = getRowCoordinate(app, row + 1)
     color = app.colors.get(app.board[row][col])
@@ -105,11 +116,11 @@ def flood(app, row, col, color, clickedColor):
     changeColor(app, row, col)
     app.seen.add((row,col))
     if row % 2 == 0:
-        for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]:
             if isLegal(app, row + drow, col + dcol, clickedColor):
                 flood(app, row + drow, col+dcol, color, clickedColor)
     elif row % 2 == 1: 
-        for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]:
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
             if isLegal(app, row + drow, col + dcol, clickedColor):
                 flood(app, row+drow, col+dcol, color, clickedColor) 
 
@@ -121,7 +132,5 @@ def isLegal(app, row, col, clickedColor):
 
 def kamiApp():
     runApp(width=500, height=600)
-
-# TODO: figure out why it doesn't flood fill sometimes... 
 
 kamiApp()
