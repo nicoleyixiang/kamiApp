@@ -3,17 +3,10 @@
 # 112 TERM PROJECT: KAMI!
 
 from cmu_112_graphics import * 
-
-def roundHalfUp(d):
-    # Round to nearest with ties going away from zero.
-    # You do not need to understand how this function works.
-    import decimal
-    rounding = decimal.ROUND_HALF_UP
-    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
     
 def appStarted(app):
     app.rows = 25
-    app.cols = 15
+    app.cols = 20
     app.margin = 10
     app.triangleSize = 0
     app.colors = {0: "maroon",
@@ -52,7 +45,7 @@ def changeColor(app, row, col):
 def getRowCol(app, x, y):
     cellWidth  = app.width / app.cols
     cellHeight = app.height / app.rows
-    app.triangleSize = cellHeight
+    app.triangleSize = cellWidth / 2
     row = int(y / cellHeight) 
     col = int(x / cellWidth) 
     xcoordinate = getColCoordinate(app, col)
@@ -60,18 +53,12 @@ def getRowCol(app, x, y):
     xdiff = x - xcoordinate
     ydiff = y - ycoordinate
     print("first", row, col)
-    if row % 2 == 0 and col % 2 == 0:
+    if row % 2 == col % 2:
         print("1!")
         if ydiff > xdiff: row = row + 1
-    elif row % 2 == 0 and col % 2 == 1: 
+    elif row % 2 != col % 2: 
         print("2!")
         if xdiff > app.triangleSize or ydiff > app.triangleSize: row = row + 1
-    elif row % 2 == 1 and col % 2 == 0: 
-        print("3!")
-        if xdiff > app.triangleSize or ydiff > app.triangleSize: row = row + 1
-    elif row % 2 == 1 and col % 2 == 1: 
-        print("4!")
-        if ydiff > xdiff: row = row + 1
     print(row, col)
     return (row, col)
 
@@ -102,11 +89,9 @@ def redrawAll(app, canvas):
 def drawBoard(app, canvas):
     for row in range(app.rows):
         for col in range(app.cols):
-            if (row % 2 == 0 and col % 2 == 0 or 
-                row % 2 == 1 and col % 2 == 1):
+            if (row % 2 == col % 2):
                 drawLeftTriangle(app, canvas, row, col)
-            elif (row % 2 == 1 and col % 2 == 0 or
-                  row % 2 == 0 and col % 2 == 1):
+            elif (row % 2 != col % 2):
                   drawRightTriangle(app, canvas, row, col)
 
 def getRowCoordinate(app, row):
