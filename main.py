@@ -4,11 +4,18 @@
 
 from cmu_112_graphics import * 
 
+def roundHalfUp(d):
+    # Round to nearest with ties going away from zero.
+    # You do not need to understand how this function works.
+    import decimal
+    rounding = decimal.ROUND_HALF_UP
+    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
+    
 def appStarted(app):
-    app.rows = 30
-    app.cols = 20
+    app.rows = 25
+    app.cols = 15
     app.margin = 10
-    app.triangleSize = 4
+    app.triangleSize = 0
     app.colors = {0: "maroon",
                   1: "white",
                   2: "darkBlue",
@@ -26,6 +33,7 @@ def mousePressed(app, event):
     if not app.drawMode:
         (row, col) = getRowCol(app, x, y)
         clickedColor = app.board[row][col]
+        # changeColor(app, row, col)
         flood(app, row, col, app.currColor, clickedColor)
         app.seen.clear()
     else:
@@ -44,17 +52,34 @@ def changeColor(app, row, col):
 def getRowCol(app, x, y):
     cellWidth  = app.width / app.cols
     cellHeight = app.height / app.rows
-    row = int((y) / cellHeight) 
-    col = int((x) / cellWidth) 
+    app.triangleSize = cellHeight
+    row = int(y / cellHeight) 
+    col = int(x / cellWidth) 
+    xcoordinate = getColCoordinate(app, col)
+    ycoordinate = getRowCoordinate(app, row)
+    xdiff = x - xcoordinate
+    ydiff = y - ycoordinate
+    print("first", row, col)
+    if row % 2 == 0 and col % 2 == 0:
+        print("1!")
+        if ydiff > xdiff: row = row + 1
+    elif row % 2 == 0 and col % 2 == 1: 
+        print("2!")
+        if xdiff > app.triangleSize or ydiff > app.triangleSize: row = row + 1
+    elif row % 2 == 1 and col % 2 == 0: 
+        print("3!")
+        if xdiff > app.triangleSize or ydiff > app.triangleSize: row = row + 1
+    elif row % 2 == 1 and col % 2 == 1: 
+        print("4!")
+        if ydiff > xdiff: row = row + 1
     print(row, col)
-    # TODO fix getRowCol to properly account for the use of triangles
     return (row, col)
 
 def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
-    app.board[4][10] = 2
-    app.board[3][12] = 2
-    app.board[4][11] = 2
+    app.board[4][2] = 2
+    app.board[3][2] = 2
+    app.board[4][1] = 2
     for i in range(app.rows):
         app.board[i][2] = 2
     for i in range(app.rows):
@@ -115,11 +140,11 @@ def drawRightTriangle(app, canvas, row, col):
 def flood(app, row, col, color, clickedColor):
     changeColor(app, row, col)
     app.seen.add((row,col))
-    if row % 2 == 0:
+    if row % 2 != col % 2:
         for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]:
             if isLegal(app, row + drow, col + dcol, clickedColor):
                 flood(app, row + drow, col+dcol, color, clickedColor)
-    elif row % 2 == 1: 
+    elif row % 2 == col % 2: 
         for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
             if isLegal(app, row + drow, col + dcol, clickedColor):
                 flood(app, row+drow, col+dcol, color, clickedColor) 
