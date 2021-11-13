@@ -1,14 +1,16 @@
+# Code copied from TA-led mini lecture "Graph Algorithms"
+
 class Graph(object):
     
     def __init__(self):
-        self.table = {}
+        self.table = dict()
     
     # Add an edge between two nodes in a graph 
     def addEdge(self, nodeA, nodeB, weight=1):
         if nodeA not in self.table:
-            self.table[nodeA] = {}
+            self.table[nodeA] = set()
         if nodeB not in self.table:
-            self.table[nodeB] = {}
+            self.table[nodeB] = set()
         self.table[nodeA][nodeB] = weight
         self.table[nodeB][nodeA] = weight
 

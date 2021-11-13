@@ -1,5 +1,6 @@
 from . import *
 
+### NOTES ###
 ''' 
 Autosolver given a board of tiles and colors 
 - Are there multiple solutions possible or only one "best solution"? 
@@ -11,6 +12,11 @@ Autosolver given a board of tiles and colors
 - Should the user be able to undo moves? Need a way to store the prev state(s)
     - Clearing the board and starting fresh is probably a lot easier, less
     memory needed to store that info 
+'''
+
+'''
+Need a way to extract the 2D list of colors and understand how each piece is 
+represented as a chunk. 
 '''
 
 ''' 
