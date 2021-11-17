@@ -5,17 +5,18 @@
 ###################################
 
 from cmu_112_graphics import * 
-    
+
+# colorname.com , use Hex values 
 # TODO use .get for app.colors as a failsafe ?? 
 def appStarted(app):
-    app.rows = 25
-    app.cols = 20
+    app.rows = 8
+    app.cols = 4
     app.margin = 10
     app.triangleSize = 0
-    app.colors = {0: "maroon",
-                  1: "white",
-                  2: "darkBlue",
-                  3: "yellow"}
+    app.colors = {0: "#CA3435",
+                  1: "#F8FFFD",
+                  2: "#1B6CA8",
+                  3: "#EEDC82"}
     app.board = []
     app.currColor = 0
     app.seen = set()
@@ -23,9 +24,15 @@ def appStarted(app):
 
     app.moves = []
     app.moveCounter = 0
+    app.edges = set()
+
+    app.graphDict = dict()
 
     app.win = False
     createBoard(app)
+
+    app.region = set()
+    app.regionList = list()
 
 def mouseDragged(app, event):
     if app.drawMode:
@@ -58,20 +65,6 @@ def checkIfWin(app):
             return
     app.win = True
 
-def keyPressed(app, event):
-    if event.key == "r": 
-        app.currColor = 0
-    elif event.key == "w": 
-        app.currColor = 1
-    elif event.key == "b": 
-        app.currColor = 2
-    elif event.key == "y":
-        app.currColor = 3
-    elif event.key == "Space": 
-        app.drawMode = not app.drawMode
-    elif event.key == "u": 
-        undoMove(app)
-
 # Doesn't work fully yet, I want to be able to undo multiple moves in a row 
 def undoMove(app):
     if len(app.moves) > 0: 
@@ -83,9 +76,6 @@ def undoMove(app):
 def changeColor(app, row, col, color):
     if 0 <= row < app.rows and 0 <= col < app.cols:
         app.board[row][col] = color
-
-def rgbString(r, g, b):
-    return f'#{r:02x}{g:02x}{b:02x}'
 
 def getRowCol(app, x, y):
     cellWidth  = app.width / app.cols
@@ -182,31 +172,187 @@ def flood(app, row, col, clickedColor, color):
                 flood(app, row+drow, col+dcol, clickedColor, color) 
 
 def isLegal(app, row, col, clickedColor):
-    if (row, col) in app.seen: 
-        return False # If the tile already changed
-    # If out of bounds 
     if row < 0 or row >= app.rows or col < 0 or col >= app.cols: 
         return False
-    # If we've reached an edge 
     if app.board[row][col] != clickedColor: 
+        app.edges.add((row,col))
         return False
+    if (row, col) in app.seen: 
+        return False 
     return True
+
+####### Autosolver (Planning) #########
+
+def search(app, row, col, color):
+    app.region.add((row,col)) # Add it to set of seen tiles 
+    app.seen.add((row,col))
+    if row % 2 != col % 2: # For all right facing triangles 
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
+            if isLegal(app, row + drow, col + dcol, color):
+                search(app, row + drow, col+dcol, color)
+    elif row % 2 == col % 2: # For all left facing triangles 
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
+            if isLegal(app, row + drow, col + dcol, color):
+                search(app, row+drow, col+dcol, color) 
+
+def getNextRowCol(app):
+    for row in range(app.rows):
+        for col in range(app.cols):
+            if (row, col) not in app.seen: return (row, col)
+    return None
+
+def createNode(app):
+    while len(app.seen) != app.rows * app.cols:
+        position = getNextRowCol(app)
+        app.region.clear()
+        app.edges.clear()
+        if position == None: return 
+        else:
+            checkX, checkY = position 
+            color = app.board[checkX][checkY]
+            search(app, checkX, checkY, color) 
+            tiles = app.region.copy()
+            edges = app.edges.copy()
+            # TODO this might be very inefficient lol 
+            newRegion = Node(tiles, color, edges)
+            app.regionList.append(newRegion)
+    printStuff(app)
+    createConnections(app)
+    printMoreStuff(app)
+
+def printStuff(app):
+    for region in app.regionList:
+        print("region", region)
+        print("its edges:", region.edges)
+        print("\n")
+
+def printMoreStuff(app):
+    for region in app.regionList:
+        print("its connections", region.connectingregions)
+
+def createConnections(app):
+    for region1 in app.regionList:
+        for (row, col) in region1.edges:
+            for region2 in app.regionList:
+                if (row, col) in region2.tiles:
+                    region1.addConnection(region2)
+
+class Node(object):
+    def __init__(self, s, color, edges):
+        self.tiles = s
+        self.color = color 
+        self.edges = edges
+        self.connectingregions = set()
+    
+    def __repr__(self):
+        return f'{self.tiles}'
+
+    def addConnection(self, region):
+        self.connectingregions.add(region)
+
+'''    
+# Code copied from TA-led mini lecture "Graph Algorithms"
+class Graph(object):
+    
+    def __init__(self, d):
+        self.table = d
+    
+    # Add an edge between two nodes in a graph 
+    def addEdge(self, nodeA, nodeB, weight=1):
+        if nodeA not in self.table:
+            self.table[nodeA] = set()
+        if nodeB not in self.table:
+            self.table[nodeB] = set()
+        self.table[nodeA][nodeB] = weight
+        self.table[nodeB][nodeA] = weight
+
+    # Return a list of all nodes in the graph 
+    def getNodes(self):
+        return list(self.table)
+    
+    # Return a set of all neighbor nodes of a given node
+    def getNeighbors(self, node):
+        return set(self.table[node])
+'''
+
+def keyPressed(app, event):
+    if event.key == "r": 
+        app.currColor = 0
+    elif event.key == "w": 
+        app.currColor = 1
+    elif event.key == "b": 
+        app.currColor = 2
+    elif event.key == "y":
+        app.currColor = 3
+    elif event.key == "Space": 
+        app.drawMode = not app.drawMode
+    elif event.key == "u": 
+        undoMove(app)
+    elif event.key == 's':
+        createNode(app)
 
 def kamiApp():
     runApp(width=500, height=600)
 
 kamiApp()
 
-####### Autosolver (Planning) #########
+'''
+BFS 
+1. Check if any of the neibors is the target node 
+    - if it isn't then you step again 
+    - looking at everything that is first one level away, then two levels, etc. 
+2. NOT a recursive algorithm, don't write using recursion 
 
-def getPieces(app):
-    # start from the 0,0 index, check the color (i.e. the number stored) 
-    # and figure out where the piece stores (i.e. where the number changes)
-        # probably a similar algo to the flood filling 
-    # store the indices in a set to represent the piece 
-    # store each color as keys in dict and values being the chunks (sets)
-    return 
+How to reconstruct paths from BFS/DFS? 
+1. Have a dict mapping each node to a previous node (initially all None)
+2. Whenever the search visits node V from node U, have V point to U in the dict
+3. At the end of the search, start at the target node and follow the pointers back
+to the start node, building the list up as we go 
 
-def createGraph(app):
-    # Adjacency list vs. adjacency matrix 
-    return   
+What is BFS/DFS useful for? 
+- Identifying connecting components 
+    - How is this implemented in my case? 
+    - Remove all connected nodes of the same color and also to find 
+    and remove all bubbles that are no longer connected to the ceiling
+- Floodfill 
+'''
+
+### NOTES ###
+''' 
+Autosolver given a board of tiles and colors 
+- Are there multiple solutions possible or only one "best solution"? 
+    - If there are multiple solutions possible, then maybe the program should
+    be able to dynamically solve from the given state (i.e. recalibrate)
+    - If there is only one best solution, then the program should be 
+    able to inform the user of the next best move 
+- Will there ever be a case where the board is unsolvable? Probably not... 
+- Should the user be able to undo moves? Need a way to store the prev state(s)
+    - Clearing the board and starting fresh is probably a lot easier, less
+    memory needed to store that info 
+'''
+
+'''
+Need a way to extract the 2D list of colors and understand how each piece is 
+represented as a region. 
+'''
+
+''' 
+Another possible version would be to do the flood filling one 
+- Start from a given node and expand it outwards 
+'''
+
+''' 
+Possible extensions to the game...?
+1. Leaderboard, other input factors, etc.
+2. Different shaped tiles... will that change anything?
+'''
+
+''' Intuitively, which shape is touching the color with most areas to 
+flood as much as possible '''
+
+''' for every move, change as many tiles as possible OR make bigger groups '''
+
+''' do my edges need to have weights? weight being a color, so the 
+program will check for each block of colors (node) how many edges with the 
+same weight exist. the node with the most edges of same weight is the 
+best next move '''
