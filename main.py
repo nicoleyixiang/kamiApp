@@ -9,14 +9,14 @@ from cmu_112_graphics import *
 # colorname.com , use Hex values 
 # TODO use .get for app.colors as a failsafe ?? 
 def appStarted(app):
-    app.rows = 8
-    app.cols = 4
-    app.margin = 10
+    app.rows = 25
+    app.cols = 20
+    app.margin = 100
     app.triangleSize = 0
-    app.colors = {0: "#CA3435",
-                  1: "#F8FFFD",
-                  2: "#1B6CA8",
-                  3: "#EEDC82"}
+    app.colors = {0: "maroon",
+                  1: "white",
+                  2: "darkBlue",
+                  3: "yellow"}
     app.board = []
     app.currColor = 0
     app.seen = set()
@@ -33,6 +33,9 @@ def appStarted(app):
 
     app.region = set()
     app.regionList = list()
+
+    app.hintColor = 0
+    app.hintCoordinate = (0,0)
 
 def mouseDragged(app, event):
     if app.drawMode:
@@ -79,7 +82,7 @@ def changeColor(app, row, col, color):
 
 def getRowCol(app, x, y):
     cellWidth  = app.width / app.cols
-    cellHeight = app.height / app.rows
+    cellHeight = (app.height - app.margin) / app.rows
     app.triangleSize = cellWidth / 2
     row = int(y / cellHeight) 
     col = int(x / cellWidth) 
@@ -101,21 +104,27 @@ def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
 
 def printInfo(app, canvas):
-    # print(app.moves)
-    canvas.create_text(200, 550, text = app.colors[app.currColor]) 
+    canvas.create_text(100, 550, text = f'Current Color: {app.colors[app.currColor]}') 
     if app.drawMode: 
-        text = "draw mode"
+        text = "Draw mode"
     else: 
-        text = "play mode"
+        text = "Play mode"
         canvas.create_text(400, 550, 
                             text = f'Number of moves: {app.moveCounter}')
-    canvas.create_text(300, 550, text = text)
+    canvas.create_text(300, 550, text = text, fill = "black")
     if app.win: 
-        canvas.create_text(350, 570, text = "won!", fill = "red")
+        canvas.create_text(200, 550, text = "Won!", fill = "red")
+        
+    row, col = app.hintCoordinate
+    color = app.colors[app.hintColor]
+    xcoordinate = getColCoordinate(app, col)
+    ycoordinate = getRowCoordinate(app, row)
+    canvas.create_text(xcoordinate, ycoordinate, text = color, fill = color, anchor = 'nw')
 
 def redrawAll(app, canvas):
     drawBoard(app, canvas) 
-    canvas.create_rectangle(0, 500, app.width, app.height, fill = "white", 
+    cellHeight = (app.height - app.margin) / app.rows
+    canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, app.height, fill = "white", 
                             outline = "black")
     printInfo(app, canvas)
 
@@ -128,7 +137,8 @@ def drawBoard(app, canvas):
                   drawRightTriangle(app, canvas, row, col)
 
 def getRowCoordinate(app, row):
-    coordinate = (app.height // app.rows) * row
+    gridHeight = app.height - app.margin
+    coordinate = (gridHeight // app.rows) * row
     return coordinate 
 
 def getColCoordinate(app, row):
@@ -142,7 +152,6 @@ def drawLeftTriangle(app, canvas, row, col):
     midY = getRowCoordinate(app, row)
     endY = getRowCoordinate(app, row + 1)
     color = app.colors.get(app.board[row][col], 0)
-    # color = rgbString(240, 100, 200)
     canvas.create_polygon(x1, midY, x2, topY, x2, endY, fill = color, width = 1,
                         outline = "black")
 
@@ -211,14 +220,15 @@ def createNode(app):
             checkX, checkY = position 
             color = app.board[checkX][checkY]
             search(app, checkX, checkY, color) 
-            tiles = app.region.copy()
+            tiles = list(app.region.copy())
             edges = app.edges.copy()
-            # TODO this might be very inefficient lol 
+            # TODO this might be very inefficient 
             newRegion = Node(tiles, color, edges)
             app.regionList.append(newRegion)
-    printStuff(app)
+    # printStuff(app)
     createConnections(app)
-    printMoreStuff(app)
+    # printMoreStuff(app)
+    # print(findRegionWithMostConnections(app))
 
 def printStuff(app):
     for region in app.regionList:
@@ -228,7 +238,7 @@ def printStuff(app):
 
 def printMoreStuff(app):
     for region in app.regionList:
-        print("its connections", region.connectingregions)
+        print("its connections", region.connectingRegions)
 
 def createConnections(app):
     for region1 in app.regionList:
@@ -237,43 +247,58 @@ def createConnections(app):
                 if (row, col) in region2.tiles:
                     region1.addConnection(region2)
 
+def findRegionWithMostConnections(app):
+    bestNumber = 0
+    bestRegion = None
+    for region in app.regionList:
+        connections = len(region.connectingRegions)
+        if connections > bestNumber: 
+            bestNumber = connections 
+            bestRegion = region 
+    return bestRegion  
+
+def giveInstructions(app):
+    region = findRegionWithMostConnections(app)
+    # print(region)
+    color = findColorToClick(region)
+    # print(color)
+    centerCoordinate = len(region.tiles) // 2
+    position = region.tiles[centerCoordinate]
+    app.hintColor = color
+    app.hintCoordinate = position
+    print(f'Click on {position} with color {app.colors[color]}')
+
+def findColorToClick(region):
+    colorDict = dict()
+    for neighbor in region.connectingRegions:
+        currColor = neighbor.color
+        colorDict[currColor] = colorDict.get(currColor, 0) + 1
+    bestColor = 0
+    bestCount = 0
+    for key in colorDict:
+        if bestCount < colorDict[key]:
+            bestCount = colorDict[key]
+            bestColor = key
+    return bestColor
+
+def giveHint(app):
+    app.seen.clear()
+    app.regionList.clear()
+    createNode(app)
+    giveInstructions(app) 
+
 class Node(object):
-    def __init__(self, s, color, edges):
-        self.tiles = s
+    def __init__(self, tileList, color, edges):
+        self.tiles = tileList
         self.color = color 
         self.edges = edges
-        self.connectingregions = set()
+        self.connectingRegions = set()
     
     def __repr__(self):
         return f'{self.tiles}'
 
     def addConnection(self, region):
-        self.connectingregions.add(region)
-
-'''    
-# Code copied from TA-led mini lecture "Graph Algorithms"
-class Graph(object):
-    
-    def __init__(self, d):
-        self.table = d
-    
-    # Add an edge between two nodes in a graph 
-    def addEdge(self, nodeA, nodeB, weight=1):
-        if nodeA not in self.table:
-            self.table[nodeA] = set()
-        if nodeB not in self.table:
-            self.table[nodeB] = set()
-        self.table[nodeA][nodeB] = weight
-        self.table[nodeB][nodeA] = weight
-
-    # Return a list of all nodes in the graph 
-    def getNodes(self):
-        return list(self.table)
-    
-    # Return a set of all neighbor nodes of a given node
-    def getNeighbors(self, node):
-        return set(self.table[node])
-'''
+        self.connectingRegions.add(region)
 
 def keyPressed(app, event):
     if event.key == "r": 
@@ -290,69 +315,10 @@ def keyPressed(app, event):
         undoMove(app)
     elif event.key == 's':
         createNode(app)
+    elif event.key == 'h':
+        giveHint(app)
 
 def kamiApp():
     runApp(width=500, height=600)
 
 kamiApp()
-
-'''
-BFS 
-1. Check if any of the neibors is the target node 
-    - if it isn't then you step again 
-    - looking at everything that is first one level away, then two levels, etc. 
-2. NOT a recursive algorithm, don't write using recursion 
-
-How to reconstruct paths from BFS/DFS? 
-1. Have a dict mapping each node to a previous node (initially all None)
-2. Whenever the search visits node V from node U, have V point to U in the dict
-3. At the end of the search, start at the target node and follow the pointers back
-to the start node, building the list up as we go 
-
-What is BFS/DFS useful for? 
-- Identifying connecting components 
-    - How is this implemented in my case? 
-    - Remove all connected nodes of the same color and also to find 
-    and remove all bubbles that are no longer connected to the ceiling
-- Floodfill 
-'''
-
-### NOTES ###
-''' 
-Autosolver given a board of tiles and colors 
-- Are there multiple solutions possible or only one "best solution"? 
-    - If there are multiple solutions possible, then maybe the program should
-    be able to dynamically solve from the given state (i.e. recalibrate)
-    - If there is only one best solution, then the program should be 
-    able to inform the user of the next best move 
-- Will there ever be a case where the board is unsolvable? Probably not... 
-- Should the user be able to undo moves? Need a way to store the prev state(s)
-    - Clearing the board and starting fresh is probably a lot easier, less
-    memory needed to store that info 
-'''
-
-'''
-Need a way to extract the 2D list of colors and understand how each piece is 
-represented as a region. 
-'''
-
-''' 
-Another possible version would be to do the flood filling one 
-- Start from a given node and expand it outwards 
-'''
-
-''' 
-Possible extensions to the game...?
-1. Leaderboard, other input factors, etc.
-2. Different shaped tiles... will that change anything?
-'''
-
-''' Intuitively, which shape is touching the color with most areas to 
-flood as much as possible '''
-
-''' for every move, change as many tiles as possible OR make bigger groups '''
-
-''' do my edges need to have weights? weight being a color, so the 
-program will check for each block of colors (node) how many edges with the 
-same weight exist. the node with the most edges of same weight is the 
-best next move '''
