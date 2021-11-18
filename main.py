@@ -10,7 +10,7 @@ from cmu_112_graphics import *
 # TODO use .get for app.colors as a failsafe ?? 
 def appStarted(app):
     app.rows = 25
-    app.cols = 20
+    app.cols = 15
     app.margin = 100
     app.triangleSize = 0
     app.colors = {0: "maroon",
@@ -224,6 +224,8 @@ def getNextRowCol(app):
     return None
 
 def createNode(app):
+    app.seen.clear()
+    app.regionList.clear()
     while len(app.seen) != app.rows * app.cols:
         position = getNextRowCol(app)
         app.region.clear()
@@ -238,10 +240,7 @@ def createNode(app):
             # TODO this might be very inefficient 
             newRegion = Node(tiles, color, edges)
             app.regionList.append(newRegion)
-    # printStuff(app)
     createConnections(app)
-    # printMoreStuff(app)
-    # print(findRegionWithMostConnections(app))
 
 def printStuff(app):
     for region in app.regionList:
@@ -272,10 +271,40 @@ def findRegionWithMostConnections(app):
 
 import random 
 
+def calculateRegionAreas(app):
+    temp = dict()
+    for region in app.regionList:
+        (bestConnection, bestNumber) = findConnectionWthMostArea(region)
+        temp[region.color] = (bestConnection, bestNumber)
+    best = 0
+    bestKey = None
+    colorToClick = None
+    for key in temp:
+        if best < temp[key][1]:
+            best = temp[key][1]
+            bestKey = key
+            colorToClick = temp[key][0]
+    print(bestKey, best, colorToClick)
+
+def findConnectionWthMostArea(region):
+    connectingAreas = dict() 
+    for neighbor in region.getNeighbors():
+        color = neighbor.color 
+        area = len(neighbor.tiles)
+        # print(color, area)
+        connectingAreas[color] = connectingAreas.get(color, 0) + area 
+    bestNumber = 0
+    bestConnection = None
+    for key in connectingAreas:
+        if bestNumber < connectingAreas[key]:
+            bestNumber = connectingAreas[key]
+            bestConnection = key
+    return (bestConnection, bestNumber)
+
 def giveInstructions(app):
     region = findRegionWithMostConnections(app)
     color = findColorToClick(region)
-    position = region.tiles[random.randint(0, len(region.tiles))]
+    position = region.tiles[random.randint(0, len(region.tiles)-1)]
     app.hintColor = color
     app.hintCoordinate = position
     print(f'Click on {position} with color {app.colors[color]}')
@@ -326,10 +355,13 @@ class Node(object):
         self.connectingRegions = set()
     
     def __repr__(self):
-        return f'{self.tiles}'
+        return f'{self.tiles, self.color}'
 
     def addConnection(self, region):
         self.connectingRegions.add(region)
+    
+    def getNeighbors(self):
+        return self.connectingRegions
 
 def keyPressed(app, event):
     if event.key == "r": 
@@ -360,19 +392,30 @@ def keyPressed(app, event):
         createFourthBoard(app)
     elif event.key == "g":
         createAdjacencyList(app)
+    elif event.key == "f":
+        calculateRegionAreas(app)
+
+def BFSHelper(app):
+    for key in app.graphDict:
+        for color in app.colors:
+            if color != key.color:
+                BFS(key)
 
 # Planning for BFS structure - 
 # referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
-def BFS(app, graph, initialNode):
-    # Create a queue (i.e. a list)
-    # Add the initialNode to the front of the queue (index 0)
+def BFS(initialNode):
+    queue = list()
+    visited = set()
+    queue.append(initialNode)
 
-    # while the queue is not empty:
-        # remove the first element in the queue (pop index 0)
-        # loop through all the neighbors of the first element we just removed 
-            # If we haven't visited the neighbor yet, then visit it and 
-            # add it to the queue
-    return 
+    while queue != []:
+        currNode = queue.pop(0)
+        neighbors = currNode.getNeighbors()
+        for neighbor in neighbors:
+            if neighbor not in visited:
+                # visit it 
+                visited.add(neighbor)
+                queue.append(neighbor)
 
 # Code copied from TA-led mini lecture "Graph Algorithms"
 class Graph(object):
