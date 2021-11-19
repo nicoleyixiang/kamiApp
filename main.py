@@ -5,19 +5,27 @@
 ###################################
 
 from cmu_112_graphics import * 
+from Node import * 
+from Graph import *
+from Board import *
 
 # colorname.com , use Hex values 
-# TODO use .get for app.colors as a failsafe ?? 
 def appStarted(app):
-    app.rows = 25
-    app.cols = 15
+    # app.rows = 25
+    # app.cols = 15
+    app.rows = 5
+    app.cols = 5
     app.margin = 100
     app.triangleSize = 0
     app.colors = {0: "maroon",
                   1: "white",
-                  2: "darkBlue",
+                  2: "blue",
                   3: "yellow"}
-    app.board = []
+    app.board = [[0, 0, 0, 0, 0],
+                [0, 1, 1, 0, 0],
+                [0, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0]]
     app.currColor = 0
     app.seen = set()
     app.drawMode = False
@@ -30,13 +38,18 @@ def appStarted(app):
     app.graphDict = dict()
 
     app.win = False
-    createBoard(app)
+    # createBoard(app)
 
     app.region = set()
     app.regionList = list()
 
     app.hintColor = 0
     app.hintCoordinate = (0,0)
+    
+    app.childrenList = list()
+    app.num = 0 
+
+    detectRegions(app)
 
 def mouseDragged(app, event):
     if app.drawMode:
@@ -48,6 +61,10 @@ def storeMove(app, tiles, color):
     app.moves.append((tiles, color))
 
 def mousePressed(app, event):
+    cellHeight = (app.height - app.margin) / app.rows
+    if not (0 < event.y < app.height - app.margin - cellHeight 
+                    and 0 < event.x < app.width): return
+    detectRegions(app)
     app.displayHint = False
     app.seen.clear()
     x = event.x
@@ -106,7 +123,8 @@ def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
 
 def printInfo(app, canvas):
-    canvas.create_text(100, 500, text = f'Current Color: {app.colors[app.currColor]}') 
+    canvas.create_text(100, 500, text = 
+                f'Current Color: {app.colors[app.currColor]}') 
     if app.drawMode: 
         text = "Draw mode"
     else: 
@@ -115,14 +133,15 @@ def printInfo(app, canvas):
                             text = f'Number of moves: {app.moveCounter}')
     canvas.create_text(250, 500, text = text, fill = "blue")
     if app.win: 
-        canvas.create_text(250, 550, text = "Won!", fill = "red")
+        canvas.create_text(250, 500, text = "Won!", fill = "red")
         
     if app.displayHint:
         row, col = app.hintCoordinate
         color = app.colors[app.hintColor]
         xcoordinate = getColCoordinate(app, col)
         ycoordinate = getRowCoordinate(app, row)
-        canvas.create_text(xcoordinate, ycoordinate, text = color, fill = color, anchor = 'nw')
+        canvas.create_text(xcoordinate, ycoordinate, text = color, 
+                            fill = color, anchor = 'nw')
 
     canvas.create_text(50, 520, text = "Press w for white.", anchor = "nw")
     canvas.create_text(50, 535, text = "Press b for blue.", anchor = "nw")
@@ -134,12 +153,13 @@ def printInfo(app, canvas):
     canvas.create_text(450, 540, text = "Press 1 for level 1.", anchor = "ne")
     canvas.create_text(450, 555, text = "Press 2 for level 2.", anchor = "ne")
     canvas.create_text(450, 570, text = "Press 3 for level 3.", anchor = "ne")
+    canvas.create_text(450, 585, text = "Press 4 for level 4.", anchor = "ne")
 
 def redrawAll(app, canvas):
     drawBoard(app, canvas) 
     cellHeight = (app.height - app.margin) / app.rows
-    canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, app.height, fill = "white", 
-                            outline = "black")
+    canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, 
+                app.height, fill = "white", outline = "black")
     printInfo(app, canvas)
 
 def drawBoard(app, canvas):
@@ -155,8 +175,8 @@ def getRowCoordinate(app, row):
     coordinate = (gridHeight // app.rows) * row
     return coordinate 
 
-def getColCoordinate(app, row):
-    coordinate = (app.width // app.cols) * row
+def getColCoordinate(app, col):
+    coordinate = (app.width // app.cols) * col
     return coordinate 
 
 def drawLeftTriangle(app, canvas, row, col):
@@ -203,6 +223,19 @@ def isLegal(app, row, col, clickedColor):
         return False 
     return True
 
+# Hardcoding some boards for testing 
+def createFirstBoard(app):
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2, 2], [0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 0], [0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+def createSecondBoard(app):
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0, 0, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 1, 1, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0]]
+
+def createThirdBoard(app):
+    app.board = [[3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 2, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, 3, 2, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0], [0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 1]]
+
+def createFourthBoard(app):
+    app.board = [[0, 0, 3, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 2, 2, 2, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 1, 1, 0, 0, 0, 2, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 3, 3, 2, 1, 1, 0, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 3, 2, 0, 1, 1, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 1, 1, 3, 2, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 1, 2, 2, 0, 0, 0, 1, 3, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 3, 0, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 3, 3, 2, 2, 3, 3, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 0, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 1, 2, 2, 3, 2, 1, 1, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 0, 3, 3, 1, 1, 2, 2, 2, 0, 1, 1, 0, 0, 0, 0], [0, 0, 2, 3, 2, 0, 0, 3, 3, 1, 3, 2, 2, 0, 0, 1, 1, 0, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 3, 3, 3, 1, 2, 0, 0, 0, 1, 1, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1, 0], [0, 0, 2, 3, 2, 0, 0, 0, 0, 2, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 3, 3, 1, 3, 0, 0, 0, 0, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0], [0, 0, 2, 2, 3, 0, 0, 0, 0, 2, 2, 2, 2, 0, 3, 3, 3, 3, 0, 0]]
+
 ####### Autosolver (Planning) #########
 
 def search(app, row, col, color):
@@ -223,10 +256,72 @@ def getNextRowCol(app):
             if (row, col) not in app.seen: return (row, col)
     return None
 
-def createNode(app):
+def getNextPosition(rows, cols, seen):
+    for row in range(rows):
+        for col in range(cols):
+            if (row, col) not in seen: return (row, col)
+    return None
+
+def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
+    if row < 0 or row >= rows or col < 0 or col >= cols: 
+        return False
+    if board[row][col] != color: 
+        edges.add((row,col))
+        return False
+    if (row, col) in seen: 
+        return False 
+    return True
+
+def searchForTiles(row, col, rows, cols, color, boardList, seen, edges, region):
+    region.add((row,col)) # Add it to set of seen tiles 
+    seen.add((row,col))
+    if row % 2 != col % 2: # For all right facing triangles 
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
+            if checkIsLegal(row + drow, col + dcol, rows, cols, color, boardList, edges, seen):
+                searchForTiles(row + drow, col+dcol, rows, cols, color, boardList, seen, edges, region)
+    elif row % 2 == col % 2: # For all left facing triangles 
+        for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
+            if checkIsLegal(row + drow, col + dcol, rows, cols, color, boardList, edges, seen):
+                searchForTiles(row + drow, col+dcol, rows, cols, color, boardList, seen, edges, region)
+
+def createRegionList(boardList):
+    rows, cols = len(boardList), len(boardList[0])
+    seen = set()
+    regionList = list()
+    index = -1
+    while len(seen) != rows * cols:
+        index += 1
+        position = getNextPosition(rows, cols, seen)
+        currRegion = set()
+        currRegionEdges = set()
+        if position == None: return
+        else:
+            checkX, checkY = position
+            color = boardList[checkX][checkY]
+            searchForTiles(checkX, checkY, rows, cols, color, boardList, seen, currRegionEdges, currRegion)
+            newRegion = Node(index, list(currRegion), color, list(), currRegionEdges)
+            regionList.append(newRegion)
+    createConnections(regionList)
+    return regionList
+
+def createConnections(regionList):
+    for region1 in regionList:
+        print(region1)
+        neighbors = list()
+        for (row, col) in region1.edges:
+            for region2 in regionList:
+                if (row, col) in region2.tiles and region2 not in neighbors:
+                   neighbors.append(region2)
+        region1.connectingRegions = neighbors
+
+# This function goes through a board at its current state and 
+# finds all the regions (as well as their neighboring connections)
+def detectRegions(app):
     app.seen.clear()
     app.regionList.clear()
+    index = -1
     while len(app.seen) != app.rows * app.cols:
+        index += 1
         position = getNextRowCol(app)
         app.region.clear()
         app.edges.clear()
@@ -237,28 +332,162 @@ def createNode(app):
             search(app, checkX, checkY, color) 
             tiles = list(app.region.copy())
             edges = app.edges.copy()
-            # TODO this might be very inefficient 
-            newRegion = Node(tiles, color, edges)
+            newRegion = Node(index, tiles, color, list(), edges)
             app.regionList.append(newRegion)
-    createConnections(app)
+    return createConnections(app)
 
-def printStuff(app):
-    for region in app.regionList:
-        print("region", region)
-        print("its edges:", region.edges)
-        print("\n")
-
-def printMoreStuff(app):
-    for region in app.regionList:
-        print("its connections", region.connectingRegions)
-
+# This goes through each region on the board and adds connections based on 
+# which of the other regions are touching the edge of current region 
 def createConnections(app):
     for region1 in app.regionList:
+        neighbors = list()
         for (row, col) in region1.edges:
             for region2 in app.regionList:
-                if (row, col) in region2.tiles:
-                    region1.addConnection(region2)
+                if (row, col) in region2.tiles and region2 not in neighbors:
+                   neighbors.append(region2)
+        region1.connectingRegions = neighbors
+    # graphToBoard(app, app.regionList)
+        # print(region1.connectingRegions)
+    return createAdjacencyList(app, app.regionList, app.board)
 
+def regionListToBoard(app, regionList):
+    for region in regionList:
+        tiles = region.tiles
+        color = region.color
+        for (row, col) in tiles:
+            app.board[row][col] = color
+
+# This creates a Board based on the regions and their neighbors 
+def createAdjacencyList(app, regionList, boardList):
+    # graphDict = dict()
+    # for node in regionList:
+    #     # print(node)
+    #     for neighbor in node.getNeighbors():
+    #         graphDict[node.name] = graphDict.get(node.name, list()) + [neighbor]
+    newGraph = Board(regionList, boardList)
+    # print(newGraph)
+    # print(len(graphDict))
+    # app.childrenList = createChildrenBoardsForBoard(app, newGraph)
+    return newGraph
+
+# def createChildren(app, )
+# For the starting board, loop through each region and try each color
+def createChildrenBoardsForBoard(app, board):
+    for region in board.regionList:
+        for color in app.colors:
+            if region.color != color:
+                child = createChildForRegion(app, region, color, board)
+                # childBoard = Board(child)
+                # board.addChild(childBoard)
+                board.addChild(child)
+    return board.children 
+    
+def createChildForRegion(app, regionChange, color, board):
+    newList = [([0] * app.cols) for _ in range(app.rows)]
+    for region in board.regionList:
+        for (row, col) in region.tiles:
+            newList[row][col] = region.color
+    for (row, col) in regionChange.tiles:
+        newList[row][col] = color
+    return newList
+    
+    # resultListOfRegions = list()
+    # mergedRegion = region.newMerge(color)
+    # # print(len(mergedRegion.tiles))
+    # for (row, col) in mergedRegion.tiles:
+    #     app.board[row][col] = mergedRegion.color
+    # resultListOfRegions.append(mergedRegion)
+    # for otherRegions in mergedRegion.getNeighbors():
+    #     resultListOfRegions.append(otherRegions)
+    # print(resultListOfRegions)
+    # return resultListOfRegions
+
+def BFSHelper(app):
+    for region in app.regionList:
+        for color in app.colors:
+            if color != region.color:
+                BFS(region)
+
+# Planning for BFS structure - 
+# referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
+def BFS(initialNode):
+    queue = list()
+    visited = set()
+    queue.append(initialNode)
+
+    while queue != []:
+        currNode = queue.pop(0)
+        neighbors = currNode.getNeighbors()
+        for neighbor in neighbors:
+            # if neighbor == targetState: return 
+            if neighbor not in visited:
+                # visit it 
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+def keyPressed(app, event):
+    # detectRegions(app)
+    if event.key == "r": 
+        app.currColor = 0
+    elif event.key == "w": 
+        app.currColor = 1
+    elif event.key == "b": 
+        app.currColor = 2
+    elif event.key == "y":
+        app.currColor = 3
+    elif event.key == "Space": 
+        app.drawMode = not app.drawMode
+    elif event.key == "u": 
+        undoMove(app)
+    # elif event.key == "s":
+    #     detectRegions(app)
+    # elif event.key == "h":
+        # giveHint(app)
+    elif event.key == "1":
+        app.moveCounter = 0
+        createFirstBoard(app)
+    # elif event.key == "p":
+    #     print(app.board)
+    elif event.key == "2":
+        app.moveCounter = 0 
+        createSecondBoard(app)
+    elif event.key == "3":
+        app.moveCounter = 0
+        createThirdBoard(app)
+    elif event.key == "4":
+        app.moveCounter = 0 
+        createFourthBoard(app)
+    elif event.key == "g":
+        detectRegions(app)
+    elif event.key == "p":
+        currBoard = detectRegions(app)
+        # print(createRegionList(app.board))
+        # currBoard = Board(createRegionList(app.board), app.board)
+        # print(currBoard)
+        listOfChildBoards = createChildrenBoardsForBoard(app, currBoard)
+        # print(listOfChildBoards)
+        # print(type(listOfChildBoards[0].regionList))
+        app.childrenList = listOfChildBoards
+        # print(app.childrenList)
+    elif event.key == "i":
+        print(len(app.childrenList))
+        print(app.childrenList)
+        testList = app.childrenList[2]
+        # childRegions = app.childrenList[app.num].regionList
+        # print(type(childRegions))
+        # regionListToBoard(app, testList)
+        app.board = testList
+        # app.board = graphToBoard(app, childRegions)
+        app.num += 1
+
+def kamiApp():
+    runApp(width=500, height=600)
+
+kamiApp()
+
+'''
+
+# This returns the region with the most connections 
 def findRegionWithMostConnections(app):
     bestNumber = 0
     bestRegion = None
@@ -271,6 +500,8 @@ def findRegionWithMostConnections(app):
 
 import random 
 
+# This calculates, for each region on the board, the region with the connection
+# that covers the most space on the screen 
 def calculateRegionAreas(app):
     temp = dict()
     for region in app.regionList:
@@ -286,6 +517,8 @@ def calculateRegionAreas(app):
             colorToClick = temp[key][0]
     print(bestKey, best, colorToClick)
 
+# This searches through each of the connecting neighbors of a given region and  
+# returns the neighbor with the greatest amount of tiles (i.e. area)
 def findConnectionWthMostArea(region):
     connectingAreas = dict() 
     for neighbor in region.getNeighbors():
@@ -326,119 +559,7 @@ def giveHint(app):
     app.displayHint = True
     app.seen.clear()
     app.regionList.clear()
-    createNode(app)
+    detectRegions(app)
     giveInstructions(app) 
 
-# Hardcoding some boards for testing 
-def createFirstBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2, 2], [0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 0], [0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-def createSecondBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0, 0, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 1, 1, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0]]
-
-def createThirdBoard(app):
-    app.board = [[3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 2, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, 3, 2, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0], [0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 1]]
-
-def createFourthBoard(app):
-    app.board = [[0, 0, 3, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 2, 2, 2, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 1, 1, 0, 0, 0, 2, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 3, 3, 2, 1, 1, 0, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 3, 2, 0, 1, 1, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 1, 1, 3, 2, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 1, 2, 2, 0, 0, 0, 1, 3, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 3, 0, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 3, 3, 2, 2, 3, 3, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 0, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 1, 2, 2, 3, 2, 1, 1, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 0, 3, 3, 1, 1, 2, 2, 2, 0, 1, 1, 0, 0, 0, 0], [0, 0, 2, 3, 2, 0, 0, 3, 3, 1, 3, 2, 2, 0, 0, 1, 1, 0, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 3, 3, 3, 1, 2, 0, 0, 0, 1, 1, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1, 0], [0, 0, 2, 3, 2, 0, 0, 0, 0, 2, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 3, 3, 1, 3, 0, 0, 0, 0, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0], [0, 0, 2, 2, 3, 0, 0, 0, 0, 2, 2, 2, 2, 0, 3, 3, 3, 3, 0, 0]]
-
-def createAdjacencyList(app):
-    for index in range(len(app.regionList)):
-        node = app.regionList[index]
-        app.graphDict[index] = node.connectingRegions
-
-class Node(object):
-    def __init__(self, tileList, color, edges):
-        self.tiles = tileList
-        self.color = color 
-        self.edges = edges
-        self.connectingRegions = set()
-    
-    def __repr__(self):
-        return f'{self.tiles, self.color}'
-
-    def addConnection(self, region):
-        self.connectingRegions.add(region)
-    
-    def getNeighbors(self):
-        return self.connectingRegions
-
-def keyPressed(app, event):
-    if event.key == "r": 
-        app.currColor = 0
-    elif event.key == "w": 
-        app.currColor = 1
-    elif event.key == "b": 
-        app.currColor = 2
-    elif event.key == "y":
-        app.currColor = 3
-    elif event.key == "Space": 
-        app.drawMode = not app.drawMode
-    elif event.key == "u": 
-        undoMove(app)
-    elif event.key == "s":
-        createNode(app)
-    elif event.key == "h":
-        giveHint(app)
-    elif event.key == "1":
-        createFirstBoard(app)
-    elif event.key == "p":
-        print(app.board)
-    elif event.key == "2":
-        createSecondBoard(app)
-    elif event.key == "3":
-        createThirdBoard(app)
-    elif event.key == "4":
-        createFourthBoard(app)
-    elif event.key == "g":
-        createAdjacencyList(app)
-    elif event.key == "f":
-        calculateRegionAreas(app)
-
-def BFSHelper(app):
-    for key in app.graphDict:
-        for color in app.colors:
-            if color != key.color:
-                BFS(key)
-
-# Planning for BFS structure - 
-# referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
-def BFS(initialNode):
-    queue = list()
-    visited = set()
-    queue.append(initialNode)
-
-    while queue != []:
-        currNode = queue.pop(0)
-        neighbors = currNode.getNeighbors()
-        for neighbor in neighbors:
-            if neighbor not in visited:
-                # visit it 
-                visited.add(neighbor)
-                queue.append(neighbor)
-
-# Code copied from TA-led mini lecture "Graph Algorithms"
-class Graph(object):
-    
-    def __init__(self, d):
-        self.table = d
-    
-    # Add an edge between two nodes in a graph 
-    def addEdge(self, nodeA, nodeB):
-        if nodeA not in self.table:
-            self.table[nodeA] = set()
-        if nodeB not in self.table:
-            self.table[nodeB] = set()
-
-    # Return a list of all nodes in the graph 
-    def getNodes(self):
-        return list(self.table)
-    
-    # Return a set of all neighbor nodes of a given node
-    def getNeighbors(self, node):
-        return set(self.table[node])
-
-def kamiApp():
-    runApp(width=500, height=600)
-
-kamiApp()
+'''
