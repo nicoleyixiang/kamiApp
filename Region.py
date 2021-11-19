@@ -1,6 +1,6 @@
 # This represents each "region" on the board by storing the tiles that make 
 # up that region, the region's color, its edges, and also its neighboring regions
-class Node(object):
+class Region(object):
     def __init__(self, name, tileList, color, connections, edges):
         self.name = name
         self.tiles = tileList
@@ -21,7 +21,7 @@ class Node(object):
         return self.connectingRegions
     
     def __eq__(self, other):
-        if not isinstance(other, Node): return False
+        if not isinstance(other, Region): return False
         else: 
             if self.tiles == other.tiles and self.color == other.color:
                 return True
@@ -43,7 +43,7 @@ class Node(object):
                         newConnections.append(neighborsOfNeighbor)
             else:
                 newConnections.append(neighbor)
-        return Node(self.name, newTiles, newColor, newConnections, set())
+        return Region(self.name, newTiles, newColor, newConnections, set())
 
 '''
 Planning:

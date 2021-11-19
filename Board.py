@@ -19,3 +19,6 @@ class Board(object):
     
     def addChild(self, child):
         self.children.append(child)
+    
+    def getChildren(self):
+        return self.children

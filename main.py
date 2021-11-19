@@ -5,16 +5,16 @@
 ###################################
 
 from cmu_112_graphics import * 
-from Node import * 
+from Region import * 
 from Graph import *
 from Board import *
 
 # colorname.com , use Hex values 
 def appStarted(app):
-    # app.rows = 25
-    # app.cols = 15
-    app.rows = 5
-    app.cols = 5
+    app.rows = 25
+    app.cols = 15
+    # app.rows = 5
+    # app.cols = 5
     app.margin = 100
     app.triangleSize = 0
     app.colors = {0: "maroon",
@@ -24,7 +24,7 @@ def appStarted(app):
     app.board = [[0, 0, 0, 0, 0],
                 [0, 1, 1, 0, 0],
                 [0, 1, 1, 0, 0],
-                [0, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0],
                 [0, 0, 0, 0, 0]]
     app.currColor = 0
     app.seen = set()
@@ -38,7 +38,7 @@ def appStarted(app):
     app.graphDict = dict()
 
     app.win = False
-    # createBoard(app)
+    createBoard(app)
 
     app.region = set()
     app.regionList = list()
@@ -49,7 +49,7 @@ def appStarted(app):
     app.childrenList = list()
     app.num = 0 
 
-    detectRegions(app)
+    # detectRegions(app)
 
 def mouseDragged(app, event):
     if app.drawMode:
@@ -299,14 +299,13 @@ def createRegionList(boardList):
             checkX, checkY = position
             color = boardList[checkX][checkY]
             searchForTiles(checkX, checkY, rows, cols, color, boardList, seen, currRegionEdges, currRegion)
-            newRegion = Node(index, list(currRegion), color, list(), currRegionEdges)
+            newRegion = Region(index, list(currRegion), color, list(), currRegionEdges)
             regionList.append(newRegion)
-    createConnections(regionList)
+    createConnectionsUsingList(regionList)
     return regionList
 
-def createConnections(regionList):
+def createConnectionsUsingList(regionList):
     for region1 in regionList:
-        print(region1)
         neighbors = list()
         for (row, col) in region1.edges:
             for region2 in regionList:
@@ -332,7 +331,7 @@ def detectRegions(app):
             search(app, checkX, checkY, color) 
             tiles = list(app.region.copy())
             edges = app.edges.copy()
-            newRegion = Node(index, tiles, color, list(), edges)
+            newRegion = Region(index, tiles, color, list(), edges)
             app.regionList.append(newRegion)
     return createConnections(app)
 
@@ -348,7 +347,7 @@ def createConnections(app):
         region1.connectingRegions = neighbors
     # graphToBoard(app, app.regionList)
         # print(region1.connectingRegions)
-    return createAdjacencyList(app, app.regionList, app.board)
+    return createAdjacencyList(app.regionList, app.board)
 
 def regionListToBoard(app, regionList):
     for region in regionList:
@@ -358,32 +357,28 @@ def regionListToBoard(app, regionList):
             app.board[row][col] = color
 
 # This creates a Board based on the regions and their neighbors 
-def createAdjacencyList(app, regionList, boardList):
-    # graphDict = dict()
-    # for node in regionList:
-    #     # print(node)
-    #     for neighbor in node.getNeighbors():
-    #         graphDict[node.name] = graphDict.get(node.name, list()) + [neighbor]
+def createAdjacencyList(regionList, boardList):
     newGraph = Board(regionList, boardList)
-    # print(newGraph)
-    # print(len(graphDict))
-    # app.childrenList = createChildrenBoardsForBoard(app, newGraph)
     return newGraph
 
-# def createChildren(app, )
 # For the starting board, loop through each region and try each color
 def createChildrenBoardsForBoard(app, board):
     for region in board.regionList:
         for color in app.colors:
             if region.color != color:
                 child = createChildForRegion(app, region, color, board)
+                childRegionList = createRegionList(child)
+                childBoard = Board(childRegionList, child)
+                board.addChild(childBoard)
                 # childBoard = Board(child)
                 # board.addChild(childBoard)
-                board.addChild(child)
+                # board.addChild(child)
     return board.children 
     
+import copy 
+
 def createChildForRegion(app, regionChange, color, board):
-    newList = [([0] * app.cols) for _ in range(app.rows)]
+    newList = copy.deepcopy(board.completeList)
     for region in board.regionList:
         for (row, col) in region.tiles:
             newList[row][col] = region.color
@@ -403,27 +398,33 @@ def createChildForRegion(app, regionChange, color, board):
     # return resultListOfRegions
 
 def BFSHelper(app):
-    for region in app.regionList:
-        for color in app.colors:
-            if color != region.color:
-                BFS(region)
+    regionList = createRegionList(app.board)
+    BFS(app, Board(regionList, app.board))
 
 # Planning for BFS structure - 
 # referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
-def BFS(initialNode):
+def BFS(app, startingBoard):
     queue = list()
-    visited = set()
-    queue.append(initialNode)
+    visited = list()
+    level = 0
+    queue.append(startingBoard)
 
     while queue != []:
-        currNode = queue.pop(0)
-        neighbors = currNode.getNeighbors()
-        for neighbor in neighbors:
-            # if neighbor == targetState: return 
-            if neighbor not in visited:
-                # visit it 
-                visited.add(neighbor)
-                queue.append(neighbor)
+        currState = queue.pop(0) 
+        createChildrenBoardsForBoard(app, currState)
+        children = currState.getChildren()
+        numberOfChildren = len(children)
+
+        for index in range(numberOfChildren):
+            level += 1
+            if len(children[index].regionList) == 1:
+                print("Levels:", level)
+                return
+            else:
+                visited.append(children[index])
+                queue.append(children[index])
+        
+        level = level - numberOfChildren
 
 def keyPressed(app, event):
     # detectRegions(app)
@@ -470,15 +471,18 @@ def keyPressed(app, event):
         app.childrenList = listOfChildBoards
         # print(app.childrenList)
     elif event.key == "i":
+        if app.num == len(app.childrenList): return
         print(len(app.childrenList))
         print(app.childrenList)
-        testList = app.childrenList[2]
+        testList = app.childrenList[app.num].completeList
         # childRegions = app.childrenList[app.num].regionList
         # print(type(childRegions))
         # regionListToBoard(app, testList)
         app.board = testList
         # app.board = graphToBoard(app, childRegions)
         app.num += 1
+    elif event.key == "0":
+        BFSHelper(app)
 
 def kamiApp():
     runApp(width=500, height=600)
