@@ -1,12 +1,13 @@
 # This represents each "region" on the board by storing the tiles that make 
 # up that region, the region's color, its edges, and also its neighboring regions
 class Region(object):
-    def __init__(self, name, tileList, color, connections, edges):
+    def __init__(self, name, tileList, color, edges):
         self.name = name
         self.tiles = tileList
         self.color = color 
         self.edges = edges
-        self.connectingRegions = connections
+        self.connectingRegions = list()
+        self.neighborColors = set()
     
     def __repr__(self):
         # returnString = f"This is a {self.color} colored region located at position {self.tiles[3]} with {len(self.connectingRegions)} connections"
@@ -19,6 +20,11 @@ class Region(object):
     
     def getNeighbors(self):
         return self.connectingRegions
+    
+    def getNeighborColors(self):
+        for neighbor in self.connectingRegions:
+            self.neighborColors.add(neighbor.color)
+        return self.neighborColors
     
     def __eq__(self, other):
         if not isinstance(other, Region): return False
