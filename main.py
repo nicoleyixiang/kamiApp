@@ -11,32 +11,64 @@ from Board import *
 from Button import *
 
 ################################
+# Home Screen Mode 
+################################
+
+def homeScreenMode_redrawAll(app, canvas):
+    canvas.create_rectangle(app.width/3, app.height/4, 2*app.width/3, 
+                    1.5*app.height/4, fill = "blue")
+    canvas.create_rectangle(app.width/3, 2*app.height/4, 2*app.width/3, 
+                    2.5*app.height/4, fill = "blue")
+
+def homeScreenMode_mousePressed(app, event):
+    app.mode = "gameMode"
+
+################################
 # Spalsh Screen Mode
 ################################
 
 def splashScreenMode_redrawAll(app, canvas):
-    canvas.create_text(app.width/2, 150, text='Welcome to Kami!', fill = 'black')
+    canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
+    canvas.create_image(0, 580, image=ImageTk.PhotoImage(app.image4), anchor = "sw")
 
 def splashScreenMode_keyPressed(app, event):
     app.mode = "gameMode"
+
+def splashScreenMode_mousePressed(app, event):
+    app.mode = "gameMode"
+
+def spalshScreenMode_timerFired(app, event):
+    return 
 
 #################################
 # Main App
 #################################
 
+# From the CMU 112 website (Graphics Week)
+def rgbString(r, g, b):
+    # Don't worry about the :02x part, but for the curious,
+    # it says to use hex (base 16) with two digits.
+    return f'#{r:02x}{g:02x}{b:02x}'
+
 # colorname.com , use Hex values 
 def appStarted(app):
+    app.image1 = app.loadImage('background.jpg')
+    app.image2 = app.scaleImage(app.image1, 1.8)
+    app.image3 = app.loadImage('title.png')
+    app.image4 = app.scaleImage(app.image3, 0.5)
+
     app.mode = "splashScreenMode"
     app.rows = 25
     app.cols = 15
-    # app.rows = 5
-    # app.cols = 5
+
+    app.buttonsList = []
+
     app.margin = 100
     app.triangleSize = 0
-    app.colors = {0: "maroon",
-                  1: "white",
-                  2: "blue",
-                  3: "yellow"}
+    app.colors = {0: (128, 0,   0),
+                  1: (255, 255, 255),
+                  2: (0,   0,   255),
+                  3: (0,   153, 0  )}
     app.board = [[0, 0, 0, 0, 0],
                 [0, 1, 1, 0, 0],
                 [0, 1, 1, 0, 0],
@@ -46,6 +78,10 @@ def appStarted(app):
     app.seen = set()
     app.drawMode = False
     app.displayHint = False
+
+    app.numberOfColors = len(app.colors)    
+    app.colorSelectionWidth = app.width / app.numberOfColors
+    app.xCoor = app.colorSelectionWidth
 
     app.moves = []
     app.moveCounter = 0
@@ -65,7 +101,9 @@ def appStarted(app):
     app.childrenList = list()
     app.num = 0 
 
-    # detectRegions(app)
+############################
+# Game Mode
+############################
 
 def gameMode_mouseDragged(app, event):
     if app.drawMode:
@@ -86,6 +124,7 @@ def gameMode_mousePressed(app, event):
     if event.y >= (app.height - (app.margin // 2)): 
         boxNumber = findBoxNumber(app, event.x)
         app.currColor = boxNumber
+        app.xCoor = app.colorSelectionWidth * (boxNumber+1)
     elif event.y < app.height-app.margin:
         app.displayHint = False
         app.seen.clear()
@@ -96,7 +135,7 @@ def gameMode_mousePressed(app, event):
             clickedColor = app.board[row][col]
             if app.currColor == clickedColor: return
             flood(app, row, col, clickedColor, app.currColor)
-            storeMove(app, app.seen, clickedColor)
+            storeMove(app, copy.copy(app.seen), clickedColor)
             checkIfWin(app)
         else:
             changeColor(app, row, col, app.currColor)
@@ -109,9 +148,8 @@ def checkIfWin(app):
             return
     app.win = True
 
-# Doesn't work fully yet, I want to be able to undo multiple moves in a row 
 def undoMove(app):
-    if len(app.moves) > 0: 
+    if app.moveCounter > 0: 
         app.moveCounter -= 1
         (tiles, color) = app.moves.pop()
         for (row, col) in tiles:
@@ -145,8 +183,6 @@ def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
 
 def printInfo(app, canvas):
-    canvas.create_text(100, 500, text = 
-                f'Current Color: {app.colors[app.currColor]}') 
     if app.drawMode: 
         text = "Draw mode"
     else: 
@@ -182,12 +218,13 @@ def gameMode_redrawAll(app, canvas):
     cellHeight = (app.height - app.margin) / app.rows
     canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, 
                 app.height, fill = "white", outline = "black")
-    numberOfColors = len(app.colors)
-    colorSelectionWidth = app.width / numberOfColors
-    for i in range(numberOfColors):
-        xCoor = colorSelectionWidth * i 
-        yCoor = app.height-app.margin//2
-        canvas.create_rectangle(xCoor, yCoor, xCoor + colorSelectionWidth, app.height, fill = app.colors[i])
+    yCoor = app.height-app.margin//2
+    for i in range(app.numberOfColors):
+        xCoor = app.colorSelectionWidth * i 
+        (r,g,b) = app.colors[i]
+        color = rgbString(r,g,b)
+        canvas.create_rectangle(xCoor, yCoor, xCoor + app.colorSelectionWidth, app.height, fill = color)
+    canvas.create_rectangle(app.xCoor, yCoor, app.xCoor-10, yCoor+10, fill = "beige")
     printInfo(app, canvas)
 
 def drawBoard(app, canvas):
@@ -207,13 +244,20 @@ def getColCoordinate(app, col):
     coordinate = (app.width // app.cols) * col
     return coordinate 
 
+def getRandomFactor(row, col):
+    factor = ((col / (row + 1))) / 100
+    return factor 
+
 def drawLeftTriangle(app, canvas, row, col):
     x1 = getColCoordinate(app, col)
     x2 = getColCoordinate(app, col + 1)
     topY = getRowCoordinate(app, row - 1)
     midY = getRowCoordinate(app, row)
     endY = getRowCoordinate(app, row + 1)
-    color = app.colors.get(app.board[row][col], 0)
+    (r, g, b) = app.colors.get(app.board[row][col], 0)
+    # factor = getRandomFactor(row, col)
+    factor = 1
+    color = rgbString(int(r*factor), int(g*factor), int(b*factor))
     canvas.create_polygon(x1, midY, x2, topY, x2, endY, fill = color, width = 1,
                         outline = "black")
 
@@ -223,7 +267,8 @@ def drawRightTriangle(app, canvas, row, col):
     topY = getRowCoordinate(app, row - 1)
     midY = getRowCoordinate(app, row)
     endY = getRowCoordinate(app, row + 1)
-    color = app.colors.get(app.board[row][col], 0)
+    (r, g, b) = app.colors.get(app.board[row][col], 0)
+    color = rgbString(r, g, b)
     canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, width = 1,
                         outline = "black")
 
@@ -405,7 +450,7 @@ def createChildrenBoardsForBoard(board):
     
 import copy 
 
-def makeChildForRegion(regionChange, color, board):
+def makeChildRegionList(regionChange, color, board):
     return
 
 # I think this needs to be more efficient
@@ -438,24 +483,26 @@ def BFSHelper(app):
 # referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
 def BFS(startingBoard):
     queue = list()
-    # visited = list()
+    visited = set()
     level = 1
     queue.append((startingBoard, 0))
+    visited.add(level)
 
     while queue != []:
         (currState, currLevel) = queue.pop(0) 
         createChildrenBoardsForBoard(currState)
         children = currState.getChildren()
         numberOfChildren = len(children)
-        if currLevel > level: level += 1
+        # if currLevel > level: level += 1
         for index in range(numberOfChildren):
             if len(children[index].regionList) == 1:
-                print("Number of moves needed:", level)
+                print("Number of moves needed:", len(visited) + 1)
                 return
             else:
                 # visited.append(children[index])
+                visited.add(level+1)
                 queue.append((children[index], level + 1))
-
+        # level += 1
 
 # This returns the region with the most connections 
 def findRegionWithMostConnections(app):
@@ -494,7 +541,6 @@ def findConnectionWthMostArea(region):
     for neighbor in region.getNeighbors():
         color = neighbor.color 
         area = len(neighbor.tiles)
-        # print(color, area)
         connectingAreas[color] = connectingAreas.get(color, 0) + area 
     bestNumber = 0
     bestConnection = None
@@ -507,9 +553,9 @@ def findConnectionWthMostArea(region):
 def giveInstructions(app):
     region = findRegionWithMostConnections(app)
     color = findColorToClick(region)
-    position = region.tiles[random.randint(0, len(region.tiles)-1)]
+    position = random.sample(region.tiles, 1)
     app.hintColor = color
-    app.hintCoordinate = position
+    app.hintCoordinate = position[0]
     print(f'Click on {position} with color {app.colors[color]}')
 
 def findColorToClick(region):
@@ -528,21 +574,14 @@ def findColorToClick(region):
 def giveHint(app):
     app.displayHint = True
     app.seen.clear()
-    app.regionList.clear()
-    # detectRegions(app)
+    app.regionList = createRegionList(app.board)
     giveInstructions(app) 
 
 def gameMode_keyPressed(app, event):
-    if event.key == "r": 
-        app.currColor = 0
-    elif event.key == "w": 
-        app.currColor = 1
-    elif event.key == "b": 
-        app.currColor = 2
-    elif event.key == "y":
-        app.currColor = 3
-    elif event.key == "Space": 
+    if event.key == "Space": 
         app.drawMode = not app.drawMode
+        app.win = False
+        app.moveCounter = 0
     elif event.key == "u": 
         undoMove(app)
     elif event.key == "1":
@@ -557,8 +596,8 @@ def gameMode_keyPressed(app, event):
     elif event.key == "4":
         app.moveCounter = 0 
         createFourthBoard(app)
-    # elif event.key == "h":
-    #     giveHint(app)
+    elif event.key == "h":
+        giveHint(app)
     elif event.key == "p":
         print(app.board)
         # currBoard = detectRegions(app)
