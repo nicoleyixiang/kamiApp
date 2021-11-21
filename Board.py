@@ -1,8 +1,9 @@
 from Region import *
 
+# Referenced the Graph class from TA-led mini lecture on Graph Algorithms
 class Board(object):
 
-    def __init__(self, listOfRegions, completeList = None):
+    def __init__(self, listOfRegions=None, completeList = None):
         self.regionList = listOfRegions
         self.graph = dict()
         if completeList == None:
@@ -10,6 +11,7 @@ class Board(object):
         else:
             self.completeList = completeList
         self.children = list()
+        # self.createGraph()
 
     def createGraph(self):
         for region in self.regionList:
@@ -17,12 +19,16 @@ class Board(object):
         return self.graph
 
     def mergeRegions(self, regionToChange, color):
-        newListOfRegions = list()
-        for region in self.regionList:
-            if region == regionToChange:
+        self.createGraph()
+        neighbors = regionToChange.getNeighbors()
+        for neighbor in neighbors: 
+            if neighbor.color == color:
                 return
-
-        # return newListOfRegions
+                
+        # newListOfRegions = list()
+        # for region in self.regionList:
+        #     if region == regionToChange:
+        #         return
 
     def createChildren(self):
         for region in self.regionList:
@@ -46,3 +52,9 @@ class Board(object):
     
     def getChildren(self):
         return self.children
+
+class ChildBoard(Board):
+
+    def __init__(self):
+        return 
+    

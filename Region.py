@@ -6,20 +6,18 @@ class Region(object):
         self.tiles = tileList
         self.color = color 
         self.edges = edges
-        self.connectingRegions = list()
+        self.connectingRegions = set()
         self.neighborColors = set()
     
     def __repr__(self):
-        # returnString = f"This is a {self.color} colored region located at position {self.tiles[3]} with {len(self.connectingRegions)} connections"
-        # returnString = f'{self.color} located at {self.tiles[3]}'
-        returnString = f'Index: {self.name}'
+        returnString = f'{self.name}'
         return returnString
-
-    def addConnection(self, region):
-        self.connectingRegions.append(region)
     
     def getNeighbors(self):
         return self.connectingRegions
+    
+    def addNeighbor(self, neighbor):
+        self.connectingRegions.add(neighbor)
     
     def getNeighborColors(self):
         for neighbor in self.connectingRegions:

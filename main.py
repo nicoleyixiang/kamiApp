@@ -309,30 +309,13 @@ def createThirdBoard(app):
 def createFourthBoard(app):
     app.board = [[0, 0, 3, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 2, 2, 2, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 1, 1, 0, 0, 0, 2, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 3, 3, 2, 1, 1, 0, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 3, 2, 0, 1, 1, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 1, 1, 3, 2, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 1, 2, 2, 0, 0, 0, 1, 3, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 3, 0, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 3, 3, 2, 2, 3, 3, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 0, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 1, 2, 2, 3, 2, 1, 1, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 0, 3, 3, 1, 1, 2, 2, 2, 0, 1, 1, 0, 0, 0, 0], [0, 0, 2, 3, 2, 0, 0, 3, 3, 1, 3, 2, 2, 0, 0, 1, 1, 0, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 3, 3, 3, 1, 2, 0, 0, 0, 1, 1, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1, 0], [0, 0, 2, 3, 2, 0, 0, 0, 0, 2, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 3, 3, 1, 3, 0, 0, 0, 0, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0], [0, 0, 2, 2, 3, 0, 0, 0, 0, 2, 2, 2, 2, 0, 3, 3, 3, 3, 0, 0]]
 
-####### Autosolver (Planning) #########
-
-# def search(app, row, col, color):
-#     app.region.add((row,col)) # Add it to set of seen tiles 
-#     app.seen.add((row,col))
-#     if row % 2 != col % 2: # For all right facing triangles 
-#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
-#             if isLegal(app, row + drow, col + dcol, color):
-#                 search(app, row + drow, col+dcol, color)
-#     elif row % 2 == col % 2: # For all left facing triangles 
-#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
-#             if isLegal(app, row + drow, col + dcol, color):
-#                 search(app, row+drow, col+dcol, color) 
-
-# def getNextRowCol(app):
-#     for row in range(app.rows):
-#         for col in range(app.cols):
-#             if (row, col) not in app.seen: return (row, col)
-#     return None
+####### Autosolver #########
 
 def getNextPosition(rows, cols, seen):
     for row in range(rows):
         for col in range(cols):
-            if (row, col) not in seen: return (row, col)
+            if (row, col) not in seen: 
+                return (row, col)
     return None
 
 def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
@@ -350,12 +333,16 @@ def searchForTiles(row, col, rows, cols, color, boardList, seen, edges, region):
     seen.add((row,col))
     if row % 2 != col % 2: # For all right facing triangles 
         for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
-            if checkIsLegal(row + drow, col + dcol, rows, cols, color, boardList, edges, seen):
-                searchForTiles(row + drow, col+dcol, rows, cols, color, boardList, seen, edges, region)
+            if checkIsLegal(row + drow, col + dcol, rows, cols, color, 
+                                boardList, edges, seen):
+                searchForTiles(row + drow, col+dcol, rows, cols, color, 
+                                boardList, seen, edges, region)
     elif row % 2 == col % 2: # For all left facing triangles 
         for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
-            if checkIsLegal(row + drow, col + dcol, rows, cols, color, boardList, edges, seen):
-                searchForTiles(row + drow, col+dcol, rows, cols, color, boardList, seen, edges, region)
+            if checkIsLegal(row + drow, col + dcol, rows, cols, color, 
+                                boardList, edges, seen):
+                searchForTiles(row + drow, col+dcol, rows, cols, color, 
+                                boardList, seen, edges, region)
 
 def createRegionList(boardList):
     rows, cols = len(boardList), len(boardList[0])
@@ -371,7 +358,8 @@ def createRegionList(boardList):
         else:
             checkX, checkY = position
             color = boardList[checkX][checkY]
-            searchForTiles(checkX, checkY, rows, cols, color, boardList, seen, currRegionEdges, currRegion)
+            searchForTiles(checkX, checkY, rows, cols, color, boardList, seen, 
+                                            currRegionEdges, currRegion)
             newRegion = Region(index, currRegion, color, currRegionEdges)
             regionList.append(newRegion)
     createConnectionsUsingList(regionList)
@@ -386,97 +374,55 @@ def createConnectionsUsingList(regionList):
                    neighbors.append(region2)
         region1.connectingRegions = neighbors
 
-# This function goes through a board at its current state and 
-# finds all the regions (as well as their neighboring connections)
-# def detectRegions(app):
-#     app.seen.clear()
-#     app.regionList.clear()
-#     index = -1
-#     while len(app.seen) != app.rows * app.cols:
-#         index += 1
-#         position = getNextRowCol(app)
-#         app.region.clear()
-#         app.edges.clear()
-#         if position == None: return 
-#         else:
-#             checkX, checkY = position 
-#             color = app.board[checkX][checkY]
-#             search(app, checkX, checkY, color) 
-#             tiles = list(app.region.copy())
-#             edges = app.edges.copy()
-#             newRegion = Region(index, tiles, color, list(), edges)
-#             app.regionList.append(newRegion)
-#     return createConnections(app)
-
-# This goes through each region on the board and adds connections based on 
-# which of the other regions are touching the edge of current region 
-# def createConnections(app):
-#     for region1 in app.regionList:
-#         neighbors = list()
-#         for (row, col) in region1.edges:
-#             for region2 in app.regionList:
-#                 if (row, col) in region2.tiles and region2 not in neighbors:
-#                    neighbors.append(region2)
-#         region1.connectingRegions = neighbors
-#     # graphToBoard(app, app.regionList)
-#         # print(region1.connectingRegions)
-#     return createAdjacencyList(app.regionList, app.board)
-
-# def regionListToBoard(app, regionList):
-#     for region in regionList:
-#         tiles = region.tiles
-#         color = region.color
-#         for (row, col) in tiles:
-#             app.board[row][col] = color
-
-# # This creates a Board based on the regions and their neighbors 
-# def createAdjacencyList(regionList, boardList):
-#     newGraph = Board(regionList, boardList)
-#     return newGraph
-
 # For the starting board, loop through each region and try each color
 def createChildrenBoardsForBoard(board):
     for region in board.regionList:
         colors = region.getNeighborColors()
         for color in colors:
-            child = createChildForRegion(region, color, board)
-            childRegionList = createRegionList(child)
-            childBoard = Board(childRegionList, child)
+            # child = createChildForRegion(region, color, board)
+            # childRegionList = createRegionList(child)
+            childBoard = makeChildRegionList(region, color, board)
+            # childBoard = Board(childRegionList, child)
             board.addChild(childBoard)
-                # childBoard = Board(child)
-                # board.addChild(childBoard)
-                # board.addChild(child)
-    # return board.children 
     
 import copy 
 
+# This function uses adjaceny matrices instead to create children 
+# TODO using this method instead of the lists to make it more efficient? 
 def makeChildRegionList(regionChange, color, board):
-    return
+    board.createGraph()
+    newGraph = copy.deepcopy(board.graph) # This copies over the adjacency
+    print(newGraph)
+    # newBoard.createGraph()
+    # regionList = board.regionList
+    neighbors = regionChange.getNeighbors() # This gets all the neighbors of the changing region 
+    for neighbor in neighbors: 
+        if neighbor.color == color: # If we come across one that is the color we're changing
+            del newGraph[neighbor.name] # Delete the neighbor from the graph 
+            for neighbor2 in neighbor.getNeighbors(): # 
+                if neighbor2 not in newGraph[regionChange.name]:
+                    newGraph[regionChange.name].append(neighbor2)
+            for key in newGraph:
+                if neighbor in newGraph[key]:
+                    newGraph[key].remove(neighbor)
+    print(newGraph)
+    newBoard = Board()
+    newBoard.graph = newGraph
+    return newBoard
+    # newBoard.graph = graph 
+    # return newBoard
 
 # I think this needs to be more efficient
 def createChildForRegion(regionChange, color, board):
     newList = copy.deepcopy(board.completeList)
-    # for region in board.regionList:
-    #     for (row, col) in region.tiles:
-    #         newList[row][col] = region.color
     for (row, col) in regionChange.tiles:
         newList[row][col] = color
     return newList
     
-    # resultListOfRegions = list()
-    # mergedRegion = region.newMerge(color)
-    # # print(len(mergedRegion.tiles))
-    # for (row, col) in mergedRegion.tiles:
-    #     app.board[row][col] = mergedRegion.color
-    # resultListOfRegions.append(mergedRegion)
-    # for otherRegions in mergedRegion.getNeighbors():
-    #     resultListOfRegions.append(otherRegions)
-    # print(resultListOfRegions)
-    # return resultListOfRegions
-
 def BFSHelper(app):
     regionList = createRegionList(app.board)
     currBoard = Board(regionList, app.board)
+    # createChildrenBoardsForBoard(currBoard)
     BFS(currBoard)
 
 # Planning for BFS structure - 
@@ -571,11 +517,11 @@ def findColorToClick(region):
             bestColor = key
     return bestColor
 
-def giveHint(app):
-    app.displayHint = True
-    app.seen.clear()
-    app.regionList = createRegionList(app.board)
-    giveInstructions(app) 
+# def giveHint(app):
+#     app.displayHint = True
+#     app.seen.clear()
+#     app.regionList = createRegionList(app.board)
+#     giveInstructions(app) 
 
 def gameMode_keyPressed(app, event):
     if event.key == "Space": 
@@ -596,30 +542,10 @@ def gameMode_keyPressed(app, event):
     elif event.key == "4":
         app.moveCounter = 0 
         createFourthBoard(app)
-    elif event.key == "h":
-        giveHint(app)
+    # elif event.key == "h":
+    #     giveHint(app)
     elif event.key == "p":
         print(app.board)
-        # currBoard = detectRegions(app)
-    #     # print(createRegionList(app.board))
-    #     # currBoard = Board(createRegionList(app.board), app.board)
-    #     # print(currBoard)
-    #     listOfChildBoards = createChildrenBoardsForBoard(app, currBoard)
-    #     # print(listOfChildBoards)
-    #     # print(type(listOfChildBoards[0].regionList))
-    #     app.childrenList = listOfChildBoards
-    #     # print(app.childrenList)
-    # elif event.key == "i":
-    #     if app.num == len(app.childrenList): return
-    #     print(len(app.childrenList))
-    #     print(app.childrenList)
-    #     testList = app.childrenList[app.num].completeList
-    #     # childRegions = app.childrenList[app.num].regionList
-    #     # print(type(childRegions))
-    #     # regionListToBoard(app, testList)
-    #     app.board = testList
-    #     # app.board = graphToBoard(app, childRegions)
-    #     app.num += 1
     elif event.key == "0":
         BFSHelper(app)
 
@@ -627,3 +553,69 @@ def kamiApp():
     runApp(width=500, height=600)
 
 kamiApp()
+
+# This function goes through a board at its current state and 
+# finds all the regions (as well as their neighboring connections)
+# def detectRegions(app):
+#     app.seen.clear()
+#     app.regionList.clear()
+#     index = -1
+#     while len(app.seen) != app.rows * app.cols:
+#         index += 1
+#         position = getNextRowCol(app)
+#         app.region.clear()
+#         app.edges.clear()
+#         if position == None: return 
+#         else:
+#             checkX, checkY = position 
+#             color = app.board[checkX][checkY]
+#             search(app, checkX, checkY, color) 
+#             tiles = list(app.region.copy())
+#             edges = app.edges.copy()
+#             newRegion = Region(index, tiles, color, list(), edges)
+#             app.regionList.append(newRegion)
+#     return createConnections(app)
+
+# This goes through each region on the board and adds connections based on 
+# which of the other regions are touching the edge of current region 
+# def createConnections(app):
+#     for region1 in app.regionList:
+#         neighbors = list()
+#         for (row, col) in region1.edges:
+#             for region2 in app.regionList:
+#                 if (row, col) in region2.tiles and region2 not in neighbors:
+#                    neighbors.append(region2)
+#         region1.connectingRegions = neighbors
+#     # graphToBoard(app, app.regionList)
+#         # print(region1.connectingRegions)
+#     return createAdjacencyList(app.regionList, app.board)
+
+# def regionListToBoard(app, regionList):
+#     for region in regionList:
+#         tiles = region.tiles
+#         color = region.color
+#         for (row, col) in tiles:
+#             app.board[row][col] = color
+
+# # This creates a Board based on the regions and their neighbors 
+# def createAdjacencyList(regionList, boardList):
+#     newGraph = Board(regionList, boardList)
+#     return newGraph
+
+# def search(app, row, col, color):
+#     app.region.add((row,col)) # Add it to set of seen tiles 
+#     app.seen.add((row,col))
+#     if row % 2 != col % 2: # For all right facing triangles 
+#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
+#             if isLegal(app, row + drow, col + dcol, color):
+#                 search(app, row + drow, col+dcol, color)
+#     elif row % 2 == col % 2: # For all left facing triangles 
+#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
+#             if isLegal(app, row + drow, col + dcol, color):
+#                 search(app, row+drow, col+dcol, color) 
+
+# def getNextRowCol(app):
+#     for row in range(app.rows):
+#         for col in range(app.cols):
+#             if (row, col) not in app.seen: return (row, col)
+#     return None
