@@ -24,11 +24,6 @@ class Board(object):
         for neighbor in neighbors: 
             if neighbor.color == color:
                 return
-                
-        # newListOfRegions = list()
-        # for region in self.regionList:
-        #     if region == regionToChange:
-        #         return
 
     def createChildren(self):
         for region in self.regionList:

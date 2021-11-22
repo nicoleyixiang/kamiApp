@@ -31,10 +31,6 @@ class Region(object):
                 return True
             else: return False
 
-    # change the color of region1 and add all the tiles of region2 to region1 (new region)
-    # this new region is connected to all the same connections as before but 
-    # minus regions that are region1 or region2
-
     def newMerge(self, color):
         newColor = color 
         newTiles = self.tiles
@@ -48,19 +44,3 @@ class Region(object):
             else:
                 newConnections.append(neighbor)
         return Region(self.name, newTiles, newColor, newConnections, set())
-
-'''
-Planning:
-
-Each node is a state in the game 
-Starting node is the starting board 
-    its children is each possible move that you can apply given this board 
-
-Whenever it visits a new node, it will check if it's the completed solution 
-    If it is, then we can stop and return 
-    If it isn't then we keep visiting unvisited children 
-
-If this layer has all been visited, then move onto the next layer 
-
-Repeat until done
-'''

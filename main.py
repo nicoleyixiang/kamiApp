@@ -11,34 +11,90 @@ from Board import *
 from Button import *
 
 ################################
-# Home Screen Mode 
-################################
-
-def homeScreenMode_redrawAll(app, canvas):
-    canvas.create_rectangle(app.width/3, app.height/4, 2*app.width/3, 
-                    1.5*app.height/4, fill = "blue")
-    canvas.create_rectangle(app.width/3, 2*app.height/4, 2*app.width/3, 
-                    2.5*app.height/4, fill = "blue")
-
-def homeScreenMode_mousePressed(app, event):
-    app.mode = "gameMode"
-
-################################
 # Spalsh Screen Mode
 ################################
 
 def splashScreenMode_redrawAll(app, canvas):
     canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
-    canvas.create_image(0, 580, image=ImageTk.PhotoImage(app.image4), anchor = "sw")
+    canvas.create_image(app.width/2, app.height/2, image=ImageTk.PhotoImage(app.image4))
+    canvas.create_text(app.width/2, app.height/2 + 80, text="Press any key to begin!", 
+                font = "Hiragino 12 bold", fill = "#D57E7E")
 
 def splashScreenMode_keyPressed(app, event):
-    app.mode = "gameMode"
+    app.mode = "homeScreenMode"
 
 def splashScreenMode_mousePressed(app, event):
-    app.mode = "gameMode"
+    app.mode = "homeScreenMode"
 
-def spalshScreenMode_timerFired(app, event):
-    return 
+# def spalshScreenMode_timerFired(app, event):
+#     app.timeRan += app.timerDelay
+#     if app.timeRan > 5000:
+#         app.timeRan = 0
+#         app.mode = "homeScreenMode"        
+
+################################
+# Home Screen Mode 
+################################
+
+def homeScreenMode_redrawAll(app, canvas):
+    canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
+    canvas.create_rectangle(app.width/3, app.height/4, 2*app.width/3, 
+                    1.5*app.height/4, fill = "#D57E7E", width = 0)
+    canvas.create_text(1.5*app.width/3, 1.25*app.height/4, text = "DRAW",
+                    font = "Hiragino 24 bold", fill = "#8F1E20")
+    canvas.create_rectangle(app.width/3, 2*app.height/4, 2*app.width/3, 
+                    2.5*app.height/4, fill = "#D57E7E", width = 0)
+    canvas.create_text(1.5*app.width/3, 2.25*app.height/4, text = "PLAY",
+                    font = "Hiragino 24 bold", fill = "#8F1E20")
+
+def homeScreenMode_mousePressed(app, event):
+    x = event.x
+    y = event.y
+    if app.width/3 < x < 2*app.width/3 and app.height/4 < y < 1.5*app.height/4:
+        app.mode = "drawMode"
+        app.drawMode = True
+    elif app.width/3 < x < 2*app.width/3 and 2*app.height/4 < y < 2.5*app.height/4:
+        app.mode = "gameMode"
+        createFirstBoard(app)
+
+#################################
+# Draw Mode 
+#################################
+
+def drawMode_redrawAll(app, canvas):
+    drawBoard(app, canvas) 
+    cellHeight = (app.height - app.margin) / app.rows
+    canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, 
+                app.height, fill = "white", outline = "black")
+    yCoor = app.height-app.margin//2
+    for i in range(app.numberOfColors):
+        xCoor = app.colorSelectionWidth * i 
+        (r,g,b) = app.colors[i]
+        color = rgbString(r,g,b)
+        canvas.create_rectangle(xCoor, yCoor, xCoor + app.colorSelectionWidth, 
+                        app.height, fill = color)
+    canvas.create_rectangle(app.xCoor, yCoor, app.xCoor-10, yCoor+10, 
+                        fill = "beige")
+    printInfo(app, canvas)
+
+def drawMode_mousePressed(app, event):
+    if event.y >= (app.height - (app.margin // 2)): 
+        boxNumber = findBoxNumber(app, event.x)
+        app.currColor = boxNumber
+        app.xCoor = app.colorSelectionWidth * (boxNumber+1)
+    (row, col) = getRowCol(app, event.x, event.y)
+    changeColor(app, row, col, app.currColor)
+
+def drawMode_keyPressed(app, event):
+    if event.key == "Space":
+        app.drawMode = False
+        app.mode = "gameMode"
+    elif event.key == "0":
+        BFSHelper(app)
+
+def drawMode_mouseDragged(app, event):
+    (row, col) = getRowCol(app, event.x, event.y)
+    changeColor(app, row, col, app.currColor)
 
 #################################
 # Main App
@@ -46,41 +102,38 @@ def spalshScreenMode_timerFired(app, event):
 
 # From the CMU 112 website (Graphics Week)
 def rgbString(r, g, b):
-    # Don't worry about the :02x part, but for the curious,
-    # it says to use hex (base 16) with two digits.
     return f'#{r:02x}{g:02x}{b:02x}'
 
-# colorname.com , use Hex values 
 def appStarted(app):
-    app.image1 = app.loadImage('background.jpg')
+    app.image1 = app.loadImage('splash.jpg')
     app.image2 = app.scaleImage(app.image1, 1.8)
-    app.image3 = app.loadImage('title.png')
-    app.image4 = app.scaleImage(app.image3, 0.5)
+    app.image3 = app.loadImage('font2.png')
+    app.image4 = app.scaleImage(app.image3, 1)
+    app.image5 = app.loadImage('arrow.webp')
+    app.image6 = app.scaleImage(app.image5, 0.1)
 
     app.mode = "splashScreenMode"
     app.rows = 25
     app.cols = 15
 
+    app.timerDelay = 1000
+    app.timeRan = 0
     app.buttonsList = []
 
     app.margin = 100
     app.triangleSize = 0
-    app.colors = {0: (128, 0,   0),
-                  1: (255, 255, 255),
-                  2: (0,   0,   255),
-                  3: (0,   153, 0  )}
-    app.board = [[0, 0, 0, 0, 0],
-                [0, 1, 1, 0, 0],
-                [0, 1, 1, 0, 0],
-                [0, 0, 0, 2, 0],
-                [0, 0, 0, 0, 0]]
+    app.colors = {0: (247, 246, 242),
+                  1: (170, 216, 211),
+                  2: (56,  62,  86),
+                  3: (251, 116, 62)}
+    app.board = []
     app.currColor = 0
     app.seen = set()
     app.drawMode = False
     app.displayHint = False
 
-    app.numberOfColors = len(app.colors)    
-    app.colorSelectionWidth = app.width / app.numberOfColors
+    app.numberOfColors = len(app.colors)
+    app.colorSelectionWidth = app.width // app.numberOfColors
     app.xCoor = app.colorSelectionWidth
 
     app.moves = []
@@ -99,17 +152,7 @@ def appStarted(app):
     app.hintCoordinate = (0,0)
     
     app.childrenList = list()
-    app.num = 0 
 
-############################
-# Game Mode
-############################
-
-def gameMode_mouseDragged(app, event):
-    if app.drawMode:
-        (row, col) = getRowCol(app, event.x, event.y)
-        changeColor(app, row, col, app.currColor)
-    
 def storeMove(app, tiles, color):
     app.moveCounter += 1
     app.moves.append((tiles, color))
@@ -118,27 +161,6 @@ def findBoxNumber(app, x):
     number = len(app.colors)
     width = app.width // number 
     return x // width
-
-def gameMode_mousePressed(app, event):
-    cellHeight = (app.height - app.margin) / app.rows
-    if event.y >= (app.height - (app.margin // 2)): 
-        boxNumber = findBoxNumber(app, event.x)
-        app.currColor = boxNumber
-        app.xCoor = app.colorSelectionWidth * (boxNumber+1)
-    elif event.y < app.height-app.margin:
-        app.displayHint = False
-        app.seen.clear()
-        x = event.x
-        y = event.y
-        (row, col) = getRowCol(app, x, y)
-        if not app.drawMode:
-            clickedColor = app.board[row][col]
-            if app.currColor == clickedColor: return
-            flood(app, row, col, clickedColor, app.currColor)
-            storeMove(app, copy.copy(app.seen), clickedColor)
-            checkIfWin(app)
-        else:
-            changeColor(app, row, col, app.currColor)
 
 def checkIfWin(app):
     for row in app.board:
@@ -169,8 +191,6 @@ def getRowCol(app, x, y):
     ycoordinate = getRowCoordinate(app, row)
     xdiff = x - xcoordinate
     ydiff = y - ycoordinate
-    # TODO check how accurate this is and whether or not it needs to be 
-    # recalibrated 
     if row % 2 == col % 2:
         if ydiff > xdiff: 
             row = row + 1
@@ -187,9 +207,9 @@ def printInfo(app, canvas):
         text = "Draw mode"
     else: 
         text = "Play mode"
-        canvas.create_text(400, 500, 
-                            text = f'Number of moves: {app.moveCounter}')
-    canvas.create_text(250, 500, text = text, fill = "blue")
+        canvas.create_text(app.width-30, app.height-app.margin+10, 
+                            text = f'Number of moves: {app.moveCounter}', anchor = "e")
+    canvas.create_text(app.width/2, app.height-app.margin+10, text = text, fill = "blue")
     if app.win: 
         canvas.create_text(250, 530, text = "Won!", fill = "red")
         
@@ -201,17 +221,28 @@ def printInfo(app, canvas):
         canvas.create_text(xcoordinate, ycoordinate, text = color, 
                             fill = color, anchor = 'nw')
 
-    # canvas.create_text(50, 520, text = "Press w for white.", anchor = "nw")
-    # canvas.create_text(50, 535, text = "Press b for blue.", anchor = "nw")
-    # canvas.create_text(50, 550, text = "Press r for maroon.", anchor = "nw")
-    # canvas.create_text(50, 565, text = "Press y for yellow.", anchor = "nw")
-
-    # canvas.create_text(450, 520, text = "Press h for a hint!", anchor = "ne")
-
-    # canvas.create_text(450, 540, text = "Press 1 for level 1.", anchor = "ne")
-    # canvas.create_text(450, 555, text = "Press 2 for level 2.", anchor = "ne")
-    # canvas.create_text(450, 570, text = "Press 3 for level 3.", anchor = "ne")
-    # canvas.create_text(450, 585, text = "Press 4 for level 4.", anchor = "ne")
+############################
+# Game Mode
+############################
+    
+def gameMode_mousePressed(app, event):
+    cellHeight = (app.height - app.margin) / app.rows
+    if event.y >= (app.height - (app.margin // 2)): 
+        boxNumber = findBoxNumber(app, event.x)
+        app.currColor = boxNumber
+        app.xCoor = app.colorSelectionWidth * (boxNumber + 1)
+    elif event.y < app.height-app.margin:
+        app.displayHint = False
+        app.seen.clear()
+        x = event.x
+        y = event.y
+        (row, col) = getRowCol(app, x, y)
+        if not app.drawMode:
+            clickedColor = app.board[row][col]
+            if app.currColor == clickedColor: return
+            flood(app, row, col, clickedColor, app.currColor)
+            storeMove(app, copy.copy(app.seen), clickedColor)
+            checkIfWin(app)
 
 def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas) 
@@ -219,12 +250,16 @@ def gameMode_redrawAll(app, canvas):
     canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, 
                 app.height, fill = "white", outline = "black")
     yCoor = app.height-app.margin//2
+    colorWidth = app.width // app.numberOfColors
     for i in range(app.numberOfColors):
-        xCoor = app.colorSelectionWidth * i 
+        xCoor = colorWidth * i 
         (r,g,b) = app.colors[i]
         color = rgbString(r,g,b)
-        canvas.create_rectangle(xCoor, yCoor, xCoor + app.colorSelectionWidth, app.height, fill = color)
-    canvas.create_rectangle(app.xCoor, yCoor, app.xCoor-10, yCoor+10, fill = "beige")
+        canvas.create_rectangle(xCoor, yCoor, xCoor + colorWidth, 
+                            app.height, fill = color)
+    canvas.create_rectangle(app.xCoor, yCoor, app.xCoor-10, yCoor+10, 
+                            fill = "beige")
+    # canvas.create_image(50, app.height-app.margin+10, image=ImageTk.PhotoImage(app.image6))
     printInfo(app, canvas)
 
 def drawBoard(app, canvas):
@@ -256,10 +291,10 @@ def drawLeftTriangle(app, canvas, row, col):
     endY = getRowCoordinate(app, row + 1)
     (r, g, b) = app.colors.get(app.board[row][col], 0)
     # factor = getRandomFactor(row, col)
-    factor = 1
-    color = rgbString(int(r*factor), int(g*factor), int(b*factor))
-    canvas.create_polygon(x1, midY, x2, topY, x2, endY, fill = color, width = 1,
-                        outline = "black")
+    # factor = 1
+    color = rgbString(r,g,b)
+    canvas.create_polygon(x1, midY, x2, topY, x2, endY, 
+                    fill = color, width = 1, outline = "black")
 
 def drawRightTriangle(app, canvas, row, col):
     x1 = getColCoordinate(app, col)
@@ -272,8 +307,8 @@ def drawRightTriangle(app, canvas, row, col):
     canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, width = 1,
                         outline = "black")
 
-# Flood filling algorithm I wrote is below. Learned graph algorithm concepts
-# during TA led mini lecture "Graph Algorithms"
+# Learned graph algorithm concepts during TA led mini lecture "Graph Algorithms"
+# and applied notes from lecture below:
 def flood(app, row, col, clickedColor, color):
     changeColor(app, row, col, color) # Change color of tile the user clicked 
     app.seen.add((row,col)) # Add it to set of seen tiles 
@@ -298,16 +333,16 @@ def isLegal(app, row, col, clickedColor):
 
 # Hardcoding some boards for testing 
 def createFirstBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 3, 0], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createSecondBoard(app):
     app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createThirdBoard(app):
-    app.board = [[3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 3, 3, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 2, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 2, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, 3, 2, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 0, 0, 0], [0, 0, 0, 0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0], [0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 1, 1, 1]]
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 3, 3, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 1, 2, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 1, 1, 1, 2, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2, 2], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 3, 3, 3, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createFourthBoard(app):
-    app.board = [[0, 0, 3, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 3, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [1, 1, 2, 2, 2, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 1, 1, 0, 0, 0, 2, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [1, 0, 3, 3, 2, 1, 1, 0, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [1, 1, 3, 3, 2, 0, 1, 1, 0, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 1, 1, 3, 2, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 1, 2, 2, 0, 0, 0, 1, 3, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 0, 0, 0, 0, 3, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 3, 0, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 3, 3, 2, 2, 3, 3, 0, 0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 0, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 3, 3, 1, 1, 2, 2, 3, 2, 1, 1, 0, 0, 0, 0, 0], [0, 0, 3, 3, 2, 0, 3, 3, 1, 1, 2, 2, 2, 0, 1, 1, 0, 0, 0, 0], [0, 0, 2, 3, 2, 0, 0, 3, 3, 1, 3, 2, 2, 0, 0, 1, 1, 0, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 3, 3, 3, 1, 2, 0, 0, 0, 1, 1, 0, 0], [0, 0, 2, 2, 2, 0, 0, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1, 0], [0, 0, 2, 3, 2, 0, 0, 0, 0, 2, 3, 3, 1, 1, 0, 0, 0, 0, 1, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 3, 3, 1, 3, 0, 0, 0, 0, 1], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0], [0, 0, 2, 3, 3, 0, 0, 0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0], [0, 0, 2, 2, 3, 0, 0, 0, 0, 2, 2, 2, 2, 0, 3, 3, 3, 3, 0, 0]]
+    app.board = [[2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], [2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], [2, 2, 3, 3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0], [2, 3, 3, 3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3], [3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3], [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2], [0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 2, 2], [0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2], [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]]
 
 ####### Autosolver #########
 
@@ -379,13 +414,46 @@ def createChildrenBoardsForBoard(board):
     for region in board.regionList:
         colors = region.getNeighborColors()
         for color in colors:
-            # child = createChildForRegion(region, color, board)
-            # childRegionList = createRegionList(child)
-            childBoard = makeChildRegionList(region, color, board)
-            # childBoard = Board(childRegionList, child)
+            child = createChildForRegion(region, color, board)
+            childRegionList = createRegionList(child)
+            # childBoard = makeChildRegionList(region, color, board)
+            childBoard = Board(childRegionList, child)
             board.addChild(childBoard)
+    return board.children
     
 import copy 
+
+# Attempting to make it faster
+def createChildsForBoard(boardD):
+    children = list()
+    for key in boardD:
+        # colors = boardD[key].getNeighborColors()
+        neighbors = boardD[key]
+        for neighbor in neighbors:
+            # TODO cannot pass in boardD, need to pass in the region name instead 
+            childBoard = makeChildRegionList(key, neighbor.color, boardD)
+            # childBoard = makeChildRegions(key, neighbor.color, boardD)
+            children.append(childBoard)
+    return children
+
+def makeChildRegions(regionChange, color, boardD):
+    newGraph = copy.deepcopy(boardD)
+    neighbors = boardD[regionChange]
+    # print(neighbors)
+    for neighbor in neighbors:
+        if neighbor.color == color:
+            for key in newGraph:
+                if neighbor in newGraph[key]:
+                    newGraph[key].remove(neighbor)
+                    newGraph[key].append(regionChange) # This might be a problem, because it's not actually appending an object
+            del newGraph[neighbor.name] # Delete the neighbor from the graph 
+            for neighbor2 in neighbor.getNeighbors(): # 
+                if neighbor2 not in boardD[regionChange]:
+                    newGraph[regionChange].append(neighbor2)
+    print(newGraph)
+    newBoard = Board()
+    newBoard.graph = newGraph
+    return newGraph
 
 # This function uses adjaceny matrices instead to create children 
 # TODO using this method instead of the lists to make it more efficient? 
@@ -408,9 +476,9 @@ def makeChildRegionList(regionChange, color, board):
     print(newGraph)
     newBoard = Board()
     newBoard.graph = newGraph
-    return newBoard
+    # return newGraph
     # newBoard.graph = graph 
-    # return newBoard
+    return newBoard
 
 # I think this needs to be more efficient
 def createChildForRegion(regionChange, color, board):
@@ -423,10 +491,10 @@ def BFSHelper(app):
     regionList = createRegionList(app.board)
     currBoard = Board(regionList, app.board)
     # createChildrenBoardsForBoard(currBoard)
-    BFS(currBoard)
-
-# Planning for BFS structure - 
-# referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
+    # currBoard.createGraph()
+    print(BFS(currBoard))
+    
+# Referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
 def BFS(startingBoard):
     queue = list()
     visited = set()
@@ -436,14 +504,17 @@ def BFS(startingBoard):
 
     while queue != []:
         (currState, currLevel) = queue.pop(0) 
-        createChildrenBoardsForBoard(currState)
-        children = currState.getChildren()
+        children = createChildrenBoardsForBoard(currState)
+        # children = currState.getChildren()
         numberOfChildren = len(children)
-        # if currLevel > level: level += 1
+        if currLevel > level: level += 1
         for index in range(numberOfChildren):
+            # if len(children[index]) == 1:
+            # TODO change to len(children[index].graph) == 1
             if len(children[index].regionList) == 1:
-                print("Number of moves needed:", len(visited) + 1)
-                return
+                solution = "Number of moves needed: " + str(level)
+                # print("Number of moves needed:", len(visited))
+                return solution
             else:
                 # visited.append(children[index])
                 visited.add(level+1)
@@ -528,6 +599,8 @@ def gameMode_keyPressed(app, event):
         app.drawMode = not app.drawMode
         app.win = False
         app.moveCounter = 0
+        app.mode = "drawMode"
+        createBoard(app)
     elif event.key == "u": 
         undoMove(app)
     elif event.key == "1":
@@ -553,69 +626,3 @@ def kamiApp():
     runApp(width=500, height=600)
 
 kamiApp()
-
-# This function goes through a board at its current state and 
-# finds all the regions (as well as their neighboring connections)
-# def detectRegions(app):
-#     app.seen.clear()
-#     app.regionList.clear()
-#     index = -1
-#     while len(app.seen) != app.rows * app.cols:
-#         index += 1
-#         position = getNextRowCol(app)
-#         app.region.clear()
-#         app.edges.clear()
-#         if position == None: return 
-#         else:
-#             checkX, checkY = position 
-#             color = app.board[checkX][checkY]
-#             search(app, checkX, checkY, color) 
-#             tiles = list(app.region.copy())
-#             edges = app.edges.copy()
-#             newRegion = Region(index, tiles, color, list(), edges)
-#             app.regionList.append(newRegion)
-#     return createConnections(app)
-
-# This goes through each region on the board and adds connections based on 
-# which of the other regions are touching the edge of current region 
-# def createConnections(app):
-#     for region1 in app.regionList:
-#         neighbors = list()
-#         for (row, col) in region1.edges:
-#             for region2 in app.regionList:
-#                 if (row, col) in region2.tiles and region2 not in neighbors:
-#                    neighbors.append(region2)
-#         region1.connectingRegions = neighbors
-#     # graphToBoard(app, app.regionList)
-#         # print(region1.connectingRegions)
-#     return createAdjacencyList(app.regionList, app.board)
-
-# def regionListToBoard(app, regionList):
-#     for region in regionList:
-#         tiles = region.tiles
-#         color = region.color
-#         for (row, col) in tiles:
-#             app.board[row][col] = color
-
-# # This creates a Board based on the regions and their neighbors 
-# def createAdjacencyList(regionList, boardList):
-#     newGraph = Board(regionList, boardList)
-#     return newGraph
-
-# def search(app, row, col, color):
-#     app.region.add((row,col)) # Add it to set of seen tiles 
-#     app.seen.add((row,col))
-#     if row % 2 != col % 2: # For all right facing triangles 
-#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, -1)]: 
-#             if isLegal(app, row + drow, col + dcol, color):
-#                 search(app, row + drow, col+dcol, color)
-#     elif row % 2 == col % 2: # For all left facing triangles 
-#         for (drow, dcol) in [(-1, 0), (+1, 0), (0, +1)]:
-#             if isLegal(app, row + drow, col + dcol, color):
-#                 search(app, row+drow, col+dcol, color) 
-
-# def getNextRowCol(app):
-#     for row in range(app.rows):
-#         for col in range(app.cols):
-#             if (row, col) not in app.seen: return (row, col)
-#     return None
