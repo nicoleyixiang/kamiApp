@@ -1,6 +1,9 @@
 from Region import *
 
 # Referenced the Graph class from TA-led mini lecture on Graph Algorithms
+# This object stores a board by keeping track of the regions that make up 
+# the given board and the 2D list of tiles (if necessary)
+
 class Board(object):
 
     def __init__(self, listOfRegions=None, completeList = None):
@@ -52,4 +55,3 @@ class ChildBoard(Board):
 
     def __init__(self):
         return 
-    
