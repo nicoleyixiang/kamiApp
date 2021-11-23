@@ -552,7 +552,7 @@ def BFS(startingBoard):
         # This tracks the depth of the BFS in order to determine how many 
         # moves we've applied to get to the solution. Referenced some posts
         # from https://stackoverflow.com/questions/31247634/how-to-keep-track-of-depth-in-breadth-first-search
-        # to get a sense of how this could be done but did NOT copy code. 
+        # to get a sense of how this can be done but did NOT copy code directly. 
         if isinstance(currState, int):
             if currState > level: level = currState
         else:
