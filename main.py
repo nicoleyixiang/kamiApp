@@ -128,7 +128,6 @@ def drawMode_mouseDragged(app, event):
     (row, col) = getRowCol(app, event.x, event.y)
     changeColor(app, row, col, app.currColor)
 
-
 ############################
 # Game Over 
 ############################
@@ -222,12 +221,12 @@ def rgbString(r, g, b):
 
 def appStarted(app):
     # Initializing images 
+    # https://www.istockphoto.com/vector/vector-abstract-blurry-pastel-colored-soft-gradient-background-gm959093634-261892056
     app.image1 = app.loadImage('images/splash.jpg')
     app.image2 = app.scaleImage(app.image1, 1.8)
+    # https://www.fontspace.com/aroly-font-f21303
     app.image3 = app.loadImage('images/font2.png')
     app.image4 = app.scaleImage(app.image3, 1)
-    app.image5 = app.loadImage('images/arrow.webp')
-    app.image6 = app.scaleImage(app.image5, 0.1)
     
     # Initializing main variables for starting game
     app.mode = "splashScreenMode"
@@ -517,6 +516,7 @@ def createChildrenBoardsForBoard(board):
             child = createChildForRegion(region, color, board)
             childRegionList = createRegionList(child)
             childBoard = Board(childRegionList, child)
+            childBoard.parent = board
             board.addChild(childBoard)
     return board.children
 
@@ -532,7 +532,19 @@ def BFSHelper(app):
     regionList = createRegionList(app.board)
     currBoard = Board(regionList, app.board)
     currBoard.createGraph()
-    app.movesNeededForBoard = BFS(currBoard)
+    (app.movesNeededForBoard, resultingBoard) = BFS(currBoard)
+    solution = getPath(app, resultingBoard, currBoard)
+    print([currBoard] + solution)
+
+# Using recursion to get the path from the resulting board back to the parent
+def getPath(app, halfwayBoard, currBoard):
+    if halfwayBoard == currBoard:
+        return []
+    else: 
+        return getPath(app, halfwayBoard.parent, currBoard) + [halfwayBoard]
+
+def printSolutionToSolveBoard(app):
+    return 
 
 # Learned the overall concept of BFS via https://en.wikipedia.org/wiki/Breadth-first_search 
 # Referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
@@ -545,7 +557,6 @@ def BFS(startingBoard):
     queue.append(1)
     visited.add(startingBoard)
     queue.append(startingBoard)
-    # path = [startingBoard]
 
     while queue != []:
         currState = queue.pop(0) 
@@ -560,7 +571,8 @@ def BFS(startingBoard):
             numberOfChildren = len(children)
             for index in range(numberOfChildren):
                 if children[index] not in visited:
-                    if len(children[index].regionList) == 1: return level
+                    if len(children[index].regionList) == 1: 
+                        return (level, children[index])
                     else:
                         visited.add(children[index])
                         queue.append(level + 1)

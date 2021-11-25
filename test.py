@@ -55,10 +55,11 @@ def creatingChildRegionLists(regionToChange, color, regionList):
     newRegionList.append(newRegion)
     return newRegionList
 
+# TODO test out using tuples instead to make BFS faster 
 def createAdjacencyList(regionList):
     adjacency = dict() 
     for region in regionList:
-        adjacency[region.name] = set()
+        adjacency[(region.name, region.color)] = set()
         for neighbor in region.connectingRegions:
             adjacency[region.name].add(neighbor.name)
     return adjacency

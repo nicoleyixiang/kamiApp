@@ -14,6 +14,7 @@ class Board(object):
         else:
             self.completeList = completeList
         self.children = list()
+        self.parent = None
         # self.createGraph()
 
     def createGraph(self):
@@ -50,8 +51,6 @@ class Board(object):
     
     def getChildren(self):
         return self.children
-
-class ChildBoard(Board):
-
-    def __init__(self):
-        return 
+    
+    def setParent(self, parent):
+        self.parent = parent
