@@ -136,7 +136,7 @@ def drawMode_keyPressed(app, event):
         createBoard(app) 
 
 def drawMode_mouseDragged(app, event):
-    if event.y > app.height - app.margin - 20: return
+    if event.y >= app.height - app.margin - 20: return
     (row, col) = getRowCol(app, event.x, event.y)
     clickedColor = app.board[row][col]
     if app.isErase:
@@ -241,23 +241,30 @@ def gameMode_redrawAll(app, canvas):
         canvas.create_text(app.width-15, app.height-app.margin+30, 
         text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", anchor = "e")
     if app.win: 
-        canvas.create_rectangle(0, app.height/2-15, 
-            app.width, app.height/2+30, fill = "white")
-        canvas.create_text(app.width/2, app.height/2, 
+        canvas.create_rectangle(0, app.height/2-80, 
+            app.width, app.height/2-10, fill = "white")
+        canvas.create_text(app.width/2, app.height/2-65, 
             text = "WON!", fill = "red")
         if app.level == None: 
-            canvas.create_text(app.width/2, app.height/2 + 15, 
+            canvas.create_text(app.width/2, app.height/2 - 45, 
             text = "Press any key to return to home screen.")
         else:
-            canvas.create_text(app.width/2, app.height/2 + 15, 
+            canvas.create_text(app.width/2, app.height/2 - 45, 
             text = "Press any key for the next level.")
-    # if (app.movesNeededForBoard != 0 and 
-    #                     app.moveCounter > app.movesNeededForBoard):
-    #     canvas.create_text(app.width/2, app.height - app.margin, 
-    #     text = "Too many moves used!")
-        # TODO need to restart the counter if the user 
-        # presses 0 in the middle of solving 
+        if exceededMoves(app):
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = "You used more moves than necessary, but that's ok!", fill = "brown")
+        else:
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = "You completed the board with the fewest moves needed!", fill = "green")
+    elif exceededMoves(app):
+        canvas.create_text(10, 10, text = "You used more moves than necessary!", anchor = "nw")
     printInfo(app, canvas)
+
+def exceededMoves(app):
+    if app.movesNeededForBoard != 0 and app.moveCounter > app.movesNeededForBoard:
+        return True
+    return False
 
 #################################
 # Main App
@@ -326,7 +333,6 @@ def appStarted(app):
 
     app.displayMoves = False
     app.movesNeededForBoard = 0
-    # app.totalMovesAvailable = None 
 
 def storeMove(app, tiles, color):
     app.moveCounter += 1
@@ -336,7 +342,7 @@ def findBoxNumber(app, x):
     number = len(app.colors)
     width = app.width // number 
     return x // width
-
+    
 def checkIfWin(app):
     for row in app.board:
         boardSet = set(row)
@@ -601,13 +607,12 @@ def createChildren(adList):
 
 def createChild(key, color, adlist):
     childAdList = copy.deepcopy(adlist) # Make a copy of the current list 
-    mergedRegions = set() # Create an empty set to store the regions we've merged
-    mergedRegions.add(key)
+    mergedRegions = {key} # Create an empty set to store the regions we've merged
     oldNeighbors = copy.deepcopy(childAdList[key]) # Store the old neighbors of the region we're about to change 
     newRegionTuple = (key[0], color) # Create a new tuple with the old index and the new color 
     mergedRegionNeighbors = list() # Create an empty list to store the merged region's neighbors
     newNeighbors = set()
-    for (neighborName, neighborColor) in childAdList[key]: # loop through all the neighbors of the region we're about to change
+    for (neighborName, neighborColor) in childAdList[key]: # Loop through all the neighbors of the region we're about to change
         if neighborColor == color: # If the color matches 
             mergedRegions.add((neighborName, neighborColor)) # Add it to the merged regions 
             mergedRegionNeighbors.extend(childAdList[(neighborName, neighborColor)])
