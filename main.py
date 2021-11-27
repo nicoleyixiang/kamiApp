@@ -25,20 +25,7 @@ def splashScreenMode_keyPressed(app, event):
     app.mode = "homeScreenMode"
 
 def splashScreenMode_mousePressed(app, event):
-    app.mode = "homeScreenMode"
-
-# def spalshScreenMode_timerFired(app, event):
-#     app.timeRan += app.timerDelay
-#     if app.timeRan > 5000:
-#         app.timeRan = 0
-#         app.mode = "homeScreenMode"        
-
-##################################
-# Instructions Mode
-##################################
-
-def instructionsMode_redrawAll(app):
-    return 
+    app.mode = "homeScreenMode"   
 
 ################################
 # Home Screen Mode 
@@ -46,8 +33,6 @@ def instructionsMode_redrawAll(app):
 
 def homeScreenMode_redrawAll(app, canvas):
     canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
-    # canvas.create_image(app.width/4, app.height/5, 
-    #               image=ImageTk.PhotoImage(app.image4))
     canvas.create_rectangle(app.width/3, app.height/4, 2*app.width/3, 
                     1.5*app.height/4, fill = "#ACE3E8", width = 0)
     canvas.create_text(1.5*app.width/3, 1.25*app.height/4, text = "DRAW",
@@ -129,7 +114,9 @@ def drawMode_mousePressed(app, event):
 def drawMode_keyPressed(app, event):
     if event.key == "Space":
         app.drawMode = False
-        app.mode = "gameMode"    
+        app.mode = "gameMode"   
+    elif event.key == "r":
+        createBoard(app) 
 
 def drawMode_mouseDragged(app, event):
     # TODO same problem here, will get an exception sometimes
@@ -158,6 +145,9 @@ def gameOver_keyPressed(app, event):
 ############################
 # Game Mode
 ############################
+
+def gameMode_timerFired(app):
+    return
 
 def gameMode_mousePressed(app, event):
     if app.win: return
@@ -419,6 +409,8 @@ def drawRightTriangle(app, canvas, row, col):
     canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, width = 0.1,
                         outline = "white")
 
+import time
+
 # Learned graph concepts during TA led mini lecture "Graph Algorithms"
 # and applied notes I took during that lecture below to write this DFS function:
 def flood(app, row, col, clickedColor, color):
@@ -546,13 +538,61 @@ def createChildForRegion(regionChange, color, board):
         newList[row][col] = color
     return newList
     
-# This function initializes the starting node and calls BFS to find the solution
-def BFSHelper(app):
-    regionList = createRegionList(app.board)
-    currBoard = Board(regionList, app.board)
-    currBoard.createGraph()
-    (app.movesNeededForBoard, resultingBoard) = BFS(currBoard)
-    app.solverSolution = getPath(app, resultingBoard, currBoard)
+def createAdjacencyList(regionList):
+    adjacencyList = dict() 
+    for region in regionList:
+        adjacencyList[(region.name, region.color)] = set()
+        for neighbor in region.neighbors:
+            neighborTuple = (neighbor.name, neighbor.color)
+            adjacencyList[(region.name, region.color)].add(neighborTuple)
+    return adjacencyList
+
+def createChildren(adList):
+    children = list()
+    for key in adList:
+        neighborColors = set()
+        for neighbor in adList[key]:
+            neighborColors.add(neighbor[1])
+        for color in neighborColors:
+            childAdList = createChild(key, color, adList)
+            children.append(childAdList)
+            printd(childAdList)
+            print("\n\n")
+    return children
+
+def printd(d):
+    for key, value in d.items():
+        print(key, ' : ', value)
+
+# TODO check what's wrong with this function
+def createChild(key, color, adlist):
+    childAdList = copy.deepcopy(adlist) # Make a copy of the current list 
+    mergedRegions = set() # Create an empty set to store the regions we've merged
+    mergedRegions.add(key)
+    oldNeighbors = copy.deepcopy(childAdList[key]) # Store the old neighbors of the region we're about to change 
+    newRegionTuple = (key[0], color) # Create a new tuple with the old index and the new color 
+    mergedRegionNeighbors = list() # Create an empty list to store the merged region's neighbors
+    newNeighbors = set()
+    for (neighborName, neighborColor) in childAdList[key]: # loop through all the neighbors of the region we're about to change
+        if neighborColor == color: # If the color matches 
+            mergedRegions.add((neighborName, neighborColor)) # Add it to the merged regions 
+            mergedRegionNeighbors.extend(childAdList[(neighborName, neighborColor)])
+    for neighbor in mergedRegionNeighbors: # Loop through each of them and add it to the newNeighbors set 
+        if neighbor not in mergedRegions:
+            newNeighbors.add(neighbor)
+    for neighbor in oldNeighbors:
+        if neighbor not in mergedRegions:
+            newNeighbors.add(neighbor)
+    for region in mergedRegions:
+        del childAdList[region]
+    childAdList[newRegionTuple] = newNeighbors
+    for key in childAdList:
+        newNeighbors = set()
+        for neighbor in childAdList[key]:
+            if neighbor not in mergedRegions:
+                newNeighbors.add(neighbor)
+        childAdList[key] = newNeighbors
+    return childAdList
 
 # Using recursion to get the path from the resulting board back to the parent
 def getPath(app, halfwayBoard, currBoard):
@@ -569,6 +609,14 @@ def printSolutionToSolveBoard(app):
     for region in nextMove.regionList:
         for (row, col) in region.tiles:
             app.board[row][col] = region.color
+
+# This function initializes the starting node and calls BFS to find the solution
+def BFSHelper(app):
+    regionList = createRegionList(app.board)
+    currBoard = Board(regionList, app.board)
+    currBoard.createGraph()
+    (app.movesNeededForBoard, resultingBoard) = BFS(currBoard)
+    app.solverSolution = getPath(app, resultingBoard, currBoard)
 
 # Learned the overall concept of BFS via https://en.wikipedia.org/wiki/Breadth-first_search 
 # Referenced https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
@@ -598,6 +646,29 @@ def BFS(startingBoard):
                         return (level, child)
                     else:
                         visited.add(child)
+                        queue.append(level + 1)
+                        queue.append(child)
+
+def fasterBFS(startingd):
+    queue = list()
+    visited = list()
+    level = 0
+    queue.append(1)
+    visited.append(startingd)
+    queue.append(startingd)
+
+    while queue != []:
+        currState = queue.pop(0) 
+        if isinstance(currState, int):
+            if currState > level: level = currState
+        else:
+            children = createChildren(currState)
+            for child in children:
+                if child not in visited:
+                    if len(child) == 1: 
+                        return level
+                    else:
+                        visited.append(child)
                         queue.append(level + 1)
                         queue.append(child)
 
@@ -661,7 +732,7 @@ def giveInstructions(app):
     app.hintCoordinate = position[0]
     print(f'Click on {position} with color {app.colors[color]}')
 
-# This function finds the best color to click based on the algorhtms above.
+# This function finds the best color to click based on the algorithms above.
 def findColorToClick(region):
     colorDict = dict()
     for neighbor in region.neighbors:
@@ -695,9 +766,11 @@ def gameMode_keyPressed(app, event):
         elif app.level == 4: createFourthBoard(app)  
         elif app.level > 4: app.mode = "gameOver"
         app.moveCounter = 0
+        app.solverSolution.clear()
+        app.hintCounter = 0
         app.win = False
         app.displayMoves = False
-    if event.key == "Space": 
+    elif event.key == "Space": 
         app.drawMode = not app.drawMode
         app.win = False
         app.moveCounter = 0
@@ -718,12 +791,16 @@ def gameMode_keyPressed(app, event):
         app.moveCounter = 0 
         createFourthBoard(app)
     elif event.key == "h":
+        if app.solverSolution == []:
+            BFSHelper(app)
         printSolutionToSolveBoard(app)
         app.hintCounter += 1
         app.moveCounter += 1
         checkIfWin(app)
     elif event.key == "p":
-        print(app.board)
+        adlist = createAdjacencyList(createRegionList(app.board))
+        app.movesNeededForBoard = fasterBFS(adlist)
+        app.displayMoves = True
     elif event.key == "0":
         BFSHelper(app)
         app.displayMoves = True

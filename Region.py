@@ -10,7 +10,7 @@ class Region(object):
         self.color = color 
         self.edges = edges
         self.neighbors = set()
-        self.neighborColors = set()
+        self.neighborColors = list()
     
     def __repr__(self):
         returnString = f'{self.name}'
@@ -24,7 +24,7 @@ class Region(object):
     
     def getNeighborColors(self):
         for neighbor in self.neighbors:
-            self.neighborColors.add(neighbor.color)
+            self.neighborColors.append(neighbor.color)
         return self.neighborColors
     
     def __eq__(self, other):
