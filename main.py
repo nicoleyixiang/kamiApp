@@ -27,6 +27,17 @@ def splashScreenMode_keyPressed(app, event):
 def splashScreenMode_mousePressed(app, event):
     app.mode = "homeScreenMode"   
 
+
+################################
+# Instructions 
+################################
+
+def instructionsMode_redrawAl(app,canvas):
+    return
+
+def instructionsMode_keyPressed(app, event):
+    app.mode = "homeScreenMode"
+
 ################################
 # Home Screen Mode 
 ################################
@@ -81,26 +92,32 @@ def drawMode_redrawAll(app, canvas):
                 app.height-app.margin+30, fill = "white", width = 0.5)
     canvas.create_text(55, app.height-app.margin+15, text = "Back", 
                 fill = "#D57E7E", font = "Hiragino")
-    canvas.create_rectangle(400, app.height-app.margin, 490, 
+    canvas.create_rectangle(110, app.height-app.margin, 200, 
                 app.height-app.margin+30, fill = "white", width = 0.5)
-    canvas.create_text(445, app.height-app.margin+15, text = "Play!", 
+    canvas.create_text(155, app.height-app.margin+15, text = "Play!", 
+                fill = "#D57E7E", font = "Hiragino")
+    canvas.create_rectangle(210, app.height - app.margin, 300,
+                app.height - app.margin + 30, fill = "white", width = 0.5)
+    canvas.create_text(255, app.height - app.margin + 15, text = "Refresh!",
                 fill = "#D57E7E", font = "Hiragino")
     printInfo(app, canvas)
 
 def drawMode_mousePressed(app, event):
-    if event.y >= app.height-app.margin - app.triangleSize:
+    if event.y >= app.height- app.margin - 20:
         if event.y >= (app.height - (app.margin // 2)): 
             boxNumber = findBoxNumber(app, event.x)
             app.currColor = boxNumber
             app.xCoor = app.colorSelectionWidth * (boxNumber+1)
-        elif (10 < event.x < 100 and 
+        elif (10 <= event.x <= 100 and 
                 app.height-app.margin < event.y < app.height-app.margin+15):
             app.mode = "homeScreenMode"
             app.level = None
-        elif (400 < event.x < 490 and 
+        elif (110 <= event.x <= 200 and 
                 app.height-app.margin < event.y < app.height-app.margin+15):
             app.mode = "gameMode"
             app.drawMode = False
+        elif (210 <= event.x <= 300):
+            createBoard(app)
     else:
         (row, col) = getRowCol(app, event.x, event.y)
         clickedColor = app.board[row][col]
@@ -119,7 +136,6 @@ def drawMode_keyPressed(app, event):
         createBoard(app) 
 
 def drawMode_mouseDragged(app, event):
-    # TODO same problem here, will get an exception sometimes
     if event.y > app.height - app.margin - 20: return
     (row, col) = getRowCol(app, event.x, event.y)
     clickedColor = app.board[row][col]
@@ -128,6 +144,11 @@ def drawMode_mouseDragged(app, event):
             changeColor(app, row, col, 0)
     else:
         changeColor(app, row, col, app.currColor)
+
+############################
+# Levels 
+############################
+
 
 ############################
 # Game Over 
@@ -146,22 +167,32 @@ def gameOver_keyPressed(app, event):
 # Game Mode
 ############################
 
-def gameMode_timerFired(app):
-    return
-
 def gameMode_mousePressed(app, event):
     if app.win: return
-    # TODO for some reason I need to minus 20 to get it in bounds..?
     if event.y >= app.height-app.margin - 20:
         if event.y >= (app.height - (app.margin // 2)): 
             boxNumber = findBoxNumber(app, event.x)
             app.currColor = boxNumber
             app.xCoor = app.colorSelectionWidth * (boxNumber + 1)
-        elif (10 < event.x < 100 and 
+        elif (10 <= event.x <= 100 and 
                     app.height-app.margin < event.y < app.height-app.margin+15):
             app.mode = "homeScreenMode"   
             app.moveCounter = 0 
-            app.movesNeededForBoard = None
+            app.movesNeededForBoard = 0
+        elif (85 <= event.x <= 215):
+            app.displayMoves = True
+            adlist = createAdjacencyList(createRegionList(app.board))
+            app.movesNeededForBoard = fasterBFS(adlist)
+            app.movesNeededForBoard += app.moveCounter
+        elif (220 <= event.x <= 290):
+            undoMove(app)
+        elif (296 <= event.x <= 365):
+            if app.solverSolution == []:
+                BFSHelper(app)
+            printSolutionToSolveBoard(app)
+            app.hintCounter += 1
+            app.moveCounter += 1
+            checkIfWin(app)
     else: 
         app.displayHint = False
         app.seen.clear()
@@ -190,13 +221,25 @@ def gameMode_redrawAll(app, canvas):
                             app.height, fill = color)
     canvas.create_rectangle(app.xCoor, yCoor, app.xCoor-10, yCoor+10, 
                             fill = "beige")
-    canvas.create_rectangle(10, app.height-app.margin, 100, 
+    canvas.create_rectangle(10, app.height-app.margin, 80, 
                 app.height-app.margin+30, fill = "white", width = 0.5)
-    canvas.create_text(55, app.height-app.margin+15, text = "Back", 
+    canvas.create_text(45, app.height-app.margin+15, text = "Back", 
+                fill = "#D57E7E", font = "Hiragino")
+    canvas.create_rectangle(85, app.height-app.margin, 215, app.height-
+                    app.margin + 30, fill = "white", width = 0.5)
+    canvas.create_text(150, app.height-app.margin+15, text = "Compute moves!", 
+                fill = "#D57E7E", font = "Hiragino")
+    canvas.create_rectangle(220, app.height-app.margin, 290, app.height-
+                    app.margin + 30, fill = "white", width = 0.5)
+    canvas.create_text(255, app.height-app.margin+15, text = "Undo!",
+                fill = "#D57E7E", font = "Hiragino")
+    canvas.create_rectangle(295, app.height-app.margin, 365, app.height-
+                    app.margin + 30, fill = "white", width = 0.5)
+    canvas.create_text(330, app.height-app.margin+15, text = "Hint!", 
                 fill = "#D57E7E", font = "Hiragino")
     if app.displayMoves:
-        canvas.create_text(app.width/2, app.height-app.margin+30, 
-        text = f'Number of moves needed: {app.movesNeededForBoard}', fill = "red")
+        canvas.create_text(app.width-15, app.height-app.margin+30, 
+        text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", anchor = "e")
     if app.win: 
         canvas.create_rectangle(0, app.height/2-15, 
             app.width, app.height/2+30, fill = "white")
@@ -204,14 +247,14 @@ def gameMode_redrawAll(app, canvas):
             text = "WON!", fill = "red")
         if app.level == None: 
             canvas.create_text(app.width/2, app.height/2 + 15, 
-            text = "Press back to return to home screen.")
+            text = "Press any key to return to home screen.")
         else:
             canvas.create_text(app.width/2, app.height/2 + 15, 
             text = "Press any key for the next level.")
-    if (app.movesNeededForBoard != None and 
-                        app.moveCounter > app.movesNeededForBoard):
-        canvas.create_text(app.width/2, app.height - app.margin, 
-        text = "Too many moves used!")
+    # if (app.movesNeededForBoard != 0 and 
+    #                     app.moveCounter > app.movesNeededForBoard):
+    #     canvas.create_text(app.width/2, app.height - app.margin, 
+    #     text = "Too many moves used!")
         # TODO need to restart the counter if the user 
         # presses 0 in the middle of solving 
     printInfo(app, canvas)
@@ -282,7 +325,7 @@ def appStarted(app):
     app.childrenList = list()
 
     app.displayMoves = False
-    app.movesNeededForBoard = None
+    app.movesNeededForBoard = 0
     # app.totalMovesAvailable = None 
 
 def storeMove(app, tiles, color):
@@ -303,7 +346,7 @@ def checkIfWin(app):
     app.win = True
 
 def undoMove(app):
-    if app.moveCounter > 0: 
+    if app.moves != []: 
         app.moveCounter -= 1
         (tiles, color) = app.moves.pop()
         for (row, col) in tiles:
@@ -337,14 +380,14 @@ def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
 
 def printInfo(app, canvas):
-    if app.drawMode: 
+    if app.drawMode:
         text = "Draw mode"
     else: 
         text = "Play mode"
-        canvas.create_text(app.width-10, app.height-app.margin+30, 
-                    text = f'Number of moves: {app.moveCounter}', anchor = "e")
-    canvas.create_text(app.width/2, app.height-app.margin+15, 
-                    text = text, fill = "blue")
+        canvas.create_text(app.width-15, app.height-app.margin+15, 
+                    text = f'Moves used: {app.moveCounter}', anchor = "e")
+    canvas.create_text(app.width-15, app.height-app.margin, 
+                    text = text, fill = "blue", anchor = "e")
     if app.displayHint:
         row, col = app.hintCoordinate
         (r,g,b) = app.colors[app.hintColor]
@@ -409,8 +452,6 @@ def drawRightTriangle(app, canvas, row, col):
     canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, width = 0.1,
                         outline = "white")
 
-import time
-
 # Learned graph concepts during TA led mini lecture "Graph Algorithms"
 # and applied notes I took during that lecture below to write this DFS function:
 def flood(app, row, col, clickedColor, color):
@@ -428,10 +469,10 @@ def flood(app, row, col, clickedColor, color):
 def isLegal(app, row, col, clickedColor):
     if row < 0 or row >= app.rows or col < 0 or col >= app.cols: 
         return False
-    if app.board[row][col] != clickedColor: 
+    elif app.board[row][col] != clickedColor: 
         app.edges.add((row,col))
         return False
-    if (row, col) in app.seen: 
+    elif (row, col) in app.seen: 
         return False 
     return True
 
@@ -462,10 +503,10 @@ def getNextPosition(rows, cols, seen):
 def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
     if row < 0 or row >= rows or col < 0 or col >= cols: 
         return False
-    if board[row][col] != color: 
+    elif board[row][col] != color: 
         edges.add((row,col))
         return False
-    if (row, col) in seen: 
+    elif (row, col) in seen: 
         return False 
     return True
 
@@ -556,15 +597,8 @@ def createChildren(adList):
         for color in neighborColors:
             childAdList = createChild(key, color, adList)
             children.append(childAdList)
-            printd(childAdList)
-            print("\n\n")
     return children
 
-def printd(d):
-    for key, value in d.items():
-        print(key, ' : ', value)
-
-# TODO check what's wrong with this function
 def createChild(key, color, adlist):
     childAdList = copy.deepcopy(adlist) # Make a copy of the current list 
     mergedRegions = set() # Create an empty set to store the regions we've merged
@@ -613,9 +647,17 @@ def printSolutionToSolveBoard(app):
 # This function initializes the starting node and calls BFS to find the solution
 def BFSHelper(app):
     regionList = createRegionList(app.board)
+    if len(regionList) == 1: 
+        checkIfWin(app)
+        # TODO need to fix the problem of the moveCounter increasing when empty board is played
+        app.movesNeededForBoard = 0
+        return
     currBoard = Board(regionList, app.board)
     currBoard.createGraph()
-    (app.movesNeededForBoard, resultingBoard) = BFS(currBoard)
+    (movesNeededForBoard, resultingBoard) = BFS(currBoard)
+    if app.movesNeededForBoard == 0:
+        app.movesNeededForBoard = movesNeededForBoard
+    app.displayMoves = True
     app.solverSolution = getPath(app, resultingBoard, currBoard)
 
 # Learned the overall concept of BFS via https://en.wikipedia.org/wiki/Breadth-first_search 
@@ -648,7 +690,10 @@ def BFS(startingBoard):
                         visited.add(child)
                         queue.append(level + 1)
                         queue.append(child)
+    return (startingBoard, 0)
 
+# This is a faster BFS algorithm that uses a simpler representation of the board.
+# This only computes the number of moves needed! Does not produce the pathway as of now. 
 def fasterBFS(startingd):
     queue = list()
     visited = list()
@@ -671,6 +716,7 @@ def fasterBFS(startingd):
                         visited.append(child)
                         queue.append(level + 1)
                         queue.append(child)
+    return 0 
 
 ########################
 # Hint system
@@ -761,11 +807,14 @@ def gameMode_keyPressed(app, event):
     if app.win:
         if app.level != None: 
             app.level = app.level + 1
-        if app.level == 2: createSecondBoard(app)
-        elif app.level == 3: createThirdBoard(app)
-        elif app.level == 4: createFourthBoard(app)  
-        elif app.level > 4: app.mode = "gameOver"
+            if app.level == 2: createSecondBoard(app)
+            elif app.level == 3: createThirdBoard(app)
+            elif app.level == 4: createFourthBoard(app)  
+            elif app.level > 4: app.mode = "gameOver"
+        else: 
+            app.mode = "homeScreenMode"
         app.moveCounter = 0
+        app.moves.clear()
         app.solverSolution.clear()
         app.hintCounter = 0
         app.win = False

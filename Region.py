@@ -34,14 +34,14 @@ class Region(object):
                 return True
             else: return False
 
-    def merge(self, color):
-        newColor = color 
-        newTiles = copy.copy(self.tiles)
-        newNeighbors = list()
-        for neighbor in self.getNeighbors():
-            if neighbor.color == color: 
-                newTiles.extend(neighbor.tiles)
-                for neighborsOfNeighbor in neighbor.getNeighbors():
-                    if neighborsOfNeighbor != self and neighborsOfNeighbor not in newNeighbors: 
-                        newNeighbors.append(neighborsOfNeighbor)
-        return Region(self.name, newTiles, newColor, newNeighbors)
+    # def merge(self, color):
+    #     newColor = color 
+    #     newTiles = copy.copy(self.tiles)
+    #     newNeighbors = list()
+    #     for neighbor in self.getNeighbors():
+    #         if neighbor.color == color: 
+    #             newTiles.extend(neighbor.tiles)
+    #             for neighborsOfNeighbor in neighbor.getNeighbors():
+    #                 if neighborsOfNeighbor != self and neighborsOfNeighbor not in newNeighbors: 
+    #                     newNeighbors.append(neighborsOfNeighbor)
+    #     return Region(self.name, newTiles, newColor, newNeighbors)
