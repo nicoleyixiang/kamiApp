@@ -6,7 +6,7 @@ from Region import *
 
 class Board(object):
 
-    def __init__(self, listOfRegions=None, completeList = None):
+    def __init__(self, listOfRegions = None, completeList = None):
         self.regionList = listOfRegions
         self.graph = dict()
         if completeList == None:
@@ -15,7 +15,6 @@ class Board(object):
             self.completeList = completeList
         self.children = list()
         self.parent = None
-        # self.createGraph()
 
     def createGraph(self):
         for region in self.regionList:

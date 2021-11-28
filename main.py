@@ -239,7 +239,8 @@ def gameMode_redrawAll(app, canvas):
                 fill = "#D57E7E", font = "Hiragino")
     if app.displayMoves:
         canvas.create_text(app.width-15, app.height-app.margin+30, 
-        text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", anchor = "e")
+        text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", 
+        anchor = "e")
     if app.win: 
         canvas.create_rectangle(0, app.height/2-80, 
             app.width, app.height/2-10, fill = "white")
@@ -253,12 +254,15 @@ def gameMode_redrawAll(app, canvas):
             text = "Press any key for the next level.")
         if exceededMoves(app):
             canvas.create_text(app.width/2, app.height/2 - 25,
-            text = "You used more moves than necessary, but that's ok!", fill = "brown")
+            text = "You used more moves than necessary, but that's ok!", 
+            fill = "brown")
         else:
             canvas.create_text(app.width/2, app.height/2 - 25,
-            text = "You completed the board with the fewest moves needed!", fill = "green")
+            text = "You completed the board with the fewest moves needed!", 
+            fill = "green")
     elif exceededMoves(app):
-        canvas.create_text(10, 10, text = "You used more moves than necessary!", anchor = "nw")
+        canvas.create_text(10, 10, text = "You used more moves than necessary!", 
+        anchor = "nw")
     printInfo(app, canvas)
 
 def exceededMoves(app):
@@ -276,7 +280,8 @@ def rgbString(r, g, b):
 
 def appStarted(app):
     # Initializing images 
-    # https://www.istockphoto.com/vector/vector-abstract-blurry-pastel-colored-soft-gradient-background-gm959093634-261892056
+    # https://www.istockphoto.com/vector/vector-abstract-blurry-pastel-colored-
+    # soft-gradient-background-gm959093634-261892056
     app.image1 = app.loadImage('images/splash.jpg')
     app.image2 = app.scaleImage(app.image1, 1.8)
     # https://www.fontspace.com/aroly-font-f21303
@@ -455,8 +460,8 @@ def drawRightTriangle(app, canvas, row, col):
     endY = getRowCoordinate(app, row + 1)
     (r, g, b) = app.colors.get(app.board[row][col], 0)
     color = rgbString(r, g, b)
-    canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, width = 0.1,
-                        outline = "white")
+    canvas.create_polygon(x1, topY, x1, endY, x2, midY, fill = color, 
+        width = 0.1, outline = "white")
 
 # Learned graph concepts during TA led mini lecture "Graph Algorithms"
 # and applied notes I took during that lecture below to write this DFS function:
@@ -643,7 +648,8 @@ def getPath(app, halfwayBoard, currBoard):
 # TODO need to clear app.solverSolution when move to somewhere new
 # This gives out the hints to solve the board
 def printSolutionToSolveBoard(app):
-    if app.solverSolution == [] or app.hintCounter > len(app.solverSolution): return
+    if app.solverSolution == [] or app.hintCounter > len(app.solverSolution): 
+        return
     nextMove = app.solverSolution[app.hintCounter]
     for region in nextMove.regionList:
         for (row, col) in region.tiles:

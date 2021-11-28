@@ -1,22 +1,35 @@
 from main import *
 import copy 
 
-# # This calculates, for each region on the board, the region with the connection
-# # that covers the most space on the screen 
-# def calculateRegionAreas(app):
-#     temp = dict()
-#     for region in app.regionList:
-#         (bestConnection, bestNumber) = findConnectionWthMostArea(region)
-#         temp[region.color] = (bestConnection, bestNumber)
-#     best = 0
-#     bestKey = None
-#     colorToClick = None
-#     for key in temp:
-#         if best < temp[key][1]:
-#             best = temp[key][1]
-#             bestKey = key
-#             colorToClick = temp[key][0]
-#     print(bestKey, best, colorToClick)
+# This calculates, for each region on the board, the region with the connection
+# that covers the most space on the screen 
+def calculateRegionAreas(app):
+    temp = dict()
+    for region in app.regionList:
+        (bestConnection, bestNumber) = findConnectionWthMostArea(region)
+        temp[region.color] = (bestConnection, bestNumber)
+    best = 0
+    bestKey = None
+    colorToClick = None
+    for key in temp:
+        if best < temp[key][1]:
+            best = temp[key][1]
+            bestKey = key
+            colorToClick = temp[key][0]
+    print(bestKey, best, colorToClick)
+
+
+def merge(self, color):
+    newColor = color 
+    newTiles = copy.copy(self.tiles)
+    newNeighbors = list()
+    for neighbor in self.getNeighbors():
+        if neighbor.color == color: 
+            newTiles.extend(neighbor.tiles)
+            for neighborsOfNeighbor in neighbor.getNeighbors():
+                if neighborsOfNeighbor != self and neighborsOfNeighbor not in newNeighbors: 
+                    newNeighbors.append(neighborsOfNeighbor)
+    return Region(self.name, newTiles, newColor, newNeighbors)
 
 # This searches through each of the connecting neighbors of a given region and  
 # returns the neighbor with the greatest amount of tiles (i.e. area)
@@ -97,7 +110,6 @@ def createAdjacencyList(regionList):
             adjacency[region.name].add(neighbor.name)
     return adjacency
 
-# Attempting to make it faster
 def createChildsForBoard(boardD):
     children = list()
     for key in boardD:
