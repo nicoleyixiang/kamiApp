@@ -79,9 +79,9 @@ def homeScreenMode_mousePressed(app, event):
 def drawMode_redrawAll(app, canvas):
     drawBoard(app, canvas) 
     cellHeight = (app.height - app.margin) / app.rows
-    canvas.create_rectangle(0, app.height-app.margin-cellHeight, app.width, 
+    canvas.create_rectangle(0, app.height - app.margin-cellHeight, app.width, 
                 app.height, fill = "white", outline = "black")
-    yCoor = app.height-app.margin//2
+    yCoor = app.height - app.margin//2
     for i in range(app.numberOfColors):
         xCoor = app.colorSelectionWidth * i 
         (r,g,b) = app.colors[i]
@@ -105,7 +105,7 @@ def drawMode_redrawAll(app, canvas):
     printInfo(app, canvas)
 
 def drawMode_mousePressed(app, event):
-    if event.y >= app.height- app.margin - 20:
+    if event.y >= app.height - app.margin - 20:
         if event.y >= (app.height - (app.margin // 2)): 
             boxNumber = findBoxNumber(app, event.x)
             app.currColor = boxNumber
@@ -131,14 +131,12 @@ def drawMode_mousePressed(app, event):
             changeColor(app, row, col, app.currColor)
 
 def drawMode_keyPressed(app, event):
-    if event.key == "Space":
-        app.drawMode = False
-        app.mode = "gameMode"   
-    elif event.key == "r":
+    if event.key == "r":
         createBoard(app) 
 
 def drawMode_mouseDragged(app, event):
-    if event.y >= app.height - app.margin - 20: return
+    # Ignore any mouse drags over the navigation bar 
+    if event.y >= app.height - app.margin - 20: return 
     (row, col) = getRowCol(app, event.x, event.y)
     clickedColor = app.board[row][col]
     if app.isErase:
@@ -170,7 +168,11 @@ def createFourthBoard(app):
 def gameOver_redrawAll(app, canvas):
     canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
     canvas.create_text(app.width/2, app.height/2, 
-    text = "Congrats! Levels completed. Press r to go back to the home screen.")
+    text = "Congrats! Levels completed.",
+    font = "Hiragino 20")
+    canvas.create_text(app.width/2, app.height/2 + 50,
+    text = "Press r to go back to the home screen.",
+    font = "Hiragino 20")
 
 def gameOver_keyPressed(app, event):
     if event.key == "r":
@@ -181,7 +183,7 @@ def gameOver_keyPressed(app, event):
 ############################
 
 def gameMode_mousePressed(app, event):
-    if app.win: return
+    if app.win: return # If the board has been won already, ignore all clicks
     if event.y >= app.height-app.margin - 20:
         if event.y >= (app.height - (app.margin // 2)): 
             boxNumber = findBoxNumber(app, event.x)
@@ -196,16 +198,17 @@ def gameMode_mousePressed(app, event):
             app.displayMoves = True
             adlist = createAdjacencyList(createRegionList(app.board))
             app.movesNeededForBoard = fasterBFS(adlist)
-            app.movesNeededForBoard += app.moveCounter
+            # app.movesNeededForBoard += app.moveCounter
         elif (220 <= event.x <= 290):
             undoMove(app)
         elif (296 <= event.x <= 365):
             if app.solverSolution == []:
                 BFSHelper(app)
             printSolutionToSolveBoard(app)
+            checkIfWin(app)
             app.hintCounter += 1
             app.moveCounter += 1
-            checkIfWin(app)
+            # TODO The move counter shouldn't increase on empty board 
     else: 
         app.displayHint = False
         app.seen.clear()
@@ -219,6 +222,7 @@ def gameMode_mousePressed(app, event):
             storeMove(app, copy.copy(app.seen), clickedColor)
             checkIfWin(app)
 
+# This function draws the board and the buttons for the game mode. 
 def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas) 
     cellHeight = (app.height - app.margin) / app.rows
@@ -250,35 +254,6 @@ def gameMode_redrawAll(app, canvas):
                     app.margin + 30, fill = "white", width = 0.5)
     canvas.create_text(330, app.height-app.margin+15, text = "Hint!", 
                 fill = "#D57E7E", font = "Hiragino")
-    if app.displayMoves:
-        canvas.create_text(app.width-15, app.height-app.margin+30, 
-        text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", 
-        anchor = "e")
-    if app.win: 
-        canvas.create_rectangle(0, app.height/2-80, 
-            app.width, app.height/2-10, fill = "white")
-        canvas.create_text(app.width/2, app.height/2-65, 
-            text = "YOU WON!", fill = "red")
-        if app.level == None: 
-            canvas.create_text(app.width/2, app.height/2 - 45, 
-            text = "Press any key to return to home screen. Press 'r' to draw another board!")
-        else:
-            canvas.create_text(app.width/2, app.height/2 - 45, 
-            text = "Press any key for the next level. Press 'r' to retry.")
-        if app.movesNeededForBoard == 0:
-            canvas.create_text(app.width/2, app.height/2 - 25,
-            text = ":)")
-        elif exceededMoves(app):
-            canvas.create_text(app.width/2, app.height/2 - 25,
-            text = "You used more moves than necessary, but that's ok!", 
-            fill = "brown")
-        else:
-            canvas.create_text(app.width/2, app.height/2 - 25,
-            text = "You completed the board with the fewest moves needed!", 
-            fill = "green")
-    elif exceededMoves(app):
-        canvas.create_text(10, 10, text = "You used more moves than necessary!", 
-        anchor = "nw")
     printInfo(app, canvas)
 
 def gameMode_keyPressed(app, event):
@@ -317,7 +292,11 @@ def gameMode_keyPressed(app, event):
     app.win = False
     app.displayMoves = False
 
+# This function checks if a user has used more moves than necessary to solve 
+# the board. 
 def exceededMoves(app):
+    # Using short circuit evaluation. If movesNeeded = 0, it means the user 
+    # has not requested to compute the number of moves
     if (app.movesNeededForBoard != 0 and 
         app.moveCounter > app.movesNeededForBoard):
         return True
@@ -393,15 +372,18 @@ def appStarted(app):
     # TODO: is it confusing that the moves needed in the middle of the game is like 
     # the total? Should it restart instead? 
 
+# This function stores the move that the user just made and updates the counter 
 def storeMove(app, tiles, color):
     app.moveCounter += 1
     app.moves.append((tiles, color))
 
+# This function finds the box that the user has clicked on to select a color 
 def findBoxNumber(app, x):
     number = len(app.colors)
     width = app.width // number 
     return x // width
-    
+
+# This function checks if the user has won the board  
 def checkIfWin(app):
     for row in app.board:
         boardSet = set(row)
@@ -410,6 +392,8 @@ def checkIfWin(app):
             return
     app.win = True
 
+# This function undoes the most recent move made by the user. Will not undo 
+# any moves made by the autosolver. 
 def undoMove(app):
     if app.moves != []: 
         app.moveCounter -= 1
@@ -417,6 +401,7 @@ def undoMove(app):
         for (row, col) in tiles:
             changeColor(app, row, col, color)
 
+# This function changes the color of a tile given its row, col values 
 def changeColor(app, row, col, color):
     if 0 <= row < app.rows and 0 <= col < app.cols:
         app.board[row][col] = color
@@ -441,9 +426,12 @@ def getRowCol(app, x, y):
             row = row + 1
     return (row, col)
 
+# This function creates a new empty board 
 def createBoard(app):
     app.board = [([0] * app.cols) for _ in range(app.rows)]
 
+# This function prints out all needed information to the user on the bottom bar 
+# of the screen 
 def printInfo(app, canvas):
     if app.drawMode:
         text = "Draw mode"
@@ -461,7 +449,37 @@ def printInfo(app, canvas):
         ycoordinate = getRowCoordinate(app, row)
         canvas.create_text(xcoordinate, ycoordinate, text = "HERE!", 
                             fill = color, anchor = 'nw')
+    if app.displayMoves:
+        canvas.create_text(app.width-15, app.height-app.margin+30, 
+        text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", 
+        anchor = "e")
+    if app.win: 
+        canvas.create_rectangle(0, app.height/2-80, 
+            app.width, app.height/2-10, fill = "white")
+        canvas.create_text(app.width/2, app.height/2-65, 
+            text = "YOU WON!", fill = "red")
+        if app.level == None: 
+            canvas.create_text(app.width/2, app.height/2 - 45, 
+            text = "Press any key to return to home screen. Press 'r' to draw another board!")
+        else:
+            canvas.create_text(app.width/2, app.height/2 - 45, 
+            text = "Press any key for the next level. Press 'r' to retry.")
+        if app.movesNeededForBoard == 0:
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = ":)")
+        elif exceededMoves(app):
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = "You used more moves than necessary, but that's ok!", 
+            fill = "brown")
+        else:
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = "You completed the board with the fewest moves needed!", 
+            fill = "green")
+    elif exceededMoves(app):
+        canvas.create_text(10, 10, text = "You used more moves than necessary!", 
+        anchor = "nw")
 
+# This function draws the board stored in the app 
 def drawBoard(app, canvas):
     for row in range(app.rows):
         for col in range(app.cols):
@@ -470,18 +488,20 @@ def drawBoard(app, canvas):
             elif (row % 2 != col % 2):
                   drawRightTriangle(app, canvas, row, col)
 
+# This function retrieves the y-coordinate given the index of a row 
 def getRowCoordinate(app, row):
     gridHeight = app.height - app.margin
     coordinate = (gridHeight // app.rows) * row
     return coordinate 
 
+# This function retrives the x-coordinate given the index of a column
 def getColCoordinate(app, col):
     coordinate = (app.width // app.cols) * col
     return coordinate 
 
-def getRandomFactor(row, col):
-    factor = ((col / (row + 1))) / 100
-    return factor 
+# def getRandomFactor(row, col):
+#     factor = ((col / (row + 1))) / 100
+#     return factor 
 
 # This draws a triangle that points to the left. 
 # This is achieved by essentially "triangulating" the points by taking the 
@@ -531,6 +551,7 @@ def flood(app, row, col, clickedColor, color):
             if isLegal(app, row + drow, col + dcol, clickedColor):
                 flood(app, row+drow, col+dcol, clickedColor, color) 
 
+# This function checks if a color change is legal for a given row, col tile 
 def isLegal(app, row, col, clickedColor):
     if row < 0 or row >= app.rows or col < 0 or col >= app.cols: 
         return False
@@ -545,6 +566,7 @@ def isLegal(app, row, col, clickedColor):
 # Autosolver 
 ############################
 
+# This function retrieves the next tile that has yet to be assigned to a region 
 def getNextPosition(rows, cols, seen):
     for row in range(rows):
         for col in range(cols):
@@ -552,6 +574,8 @@ def getNextPosition(rows, cols, seen):
                 return (row, col)
     return None
 
+# This function checks if a tile being searched is a legal tile belonging to 
+# the region we're currently building 
 def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
     if row < 0 or row >= rows or col < 0 or col >= cols: 
         return False
@@ -562,6 +586,7 @@ def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
         return False 
     return True
 
+# This function searches for the tiles that make up a region on the board 
 def searchForTiles(row, col, rows, cols, color, boardList, seen, edges, region):
     region.add((row,col)) # Add it to set of seen tiles 
     seen.add((row,col))
@@ -590,7 +615,7 @@ def createRegionList(boardList):
         position = getNextPosition(rows, cols, seen)
         currRegion = set()
         currRegionEdges = set()
-        if position == None: return
+        if position == None: return # If we've finished searching the board, stop
         else:
             checkX, checkY = position
             color = boardList[checkX][checkY]
@@ -617,9 +642,9 @@ def createChildrenBoardsForBoard(board):
     for region in board.regionList:
         colors = region.getNeighborColors()
         for color in colors:
-            child = createChildForRegion(region, color, board)
-            childRegionList = createRegionList(child)
-            childBoard = Board(childRegionList, child)
+            childCompleteList = createChildForRegion(region, color, board)
+            childRegionList = createRegionList(childCompleteList)
+            childBoard = Board(childRegionList, childCompleteList)
             childBoard.parent = board
             board.addChild(childBoard)
     return board.children
@@ -631,6 +656,7 @@ def createChildForRegion(regionChange, color, board):
         newList[row][col] = color
     return newList
     
+# This function creates an adjacency list for a board given its regions 
 def createAdjacencyList(regionList):
     adjacencyList = dict() 
     for region in regionList:
@@ -640,7 +666,9 @@ def createAdjacencyList(regionList):
             adjacencyList[(region.name, region.color)].add(neighborTuple)
     return adjacencyList
 
-def createChildren(adList):
+# This function creates the children boards given an initial adjacency list 
+# i.e. applies all the move for a given board to create new boards
+def createChildrenUsingAdjacencyList(adList):
     children = list()
     for key in adList:
         neighborColors = set()
@@ -651,14 +679,17 @@ def createChildren(adList):
             children.append(childAdList)
     return children
 
-def createChild(key, color, adlist):
+# This function creates a child board by taking in the adjacency list 
+# that represents the current board, the region that we wish to change,
+# and the color we wish to change it to. 
+def createChild(regionChange, color, adlist):
     childAdList = copy.deepcopy(adlist) # Make a copy of the current list 
-    mergedRegions = {key} # Create an empty set to store the regions we've merged
-    oldNeighbors = copy.deepcopy(childAdList[key]) # Store the old neighbors of the region we're about to change 
-    newRegionTuple = (key[0], color) # Create a new tuple with the old index and the new color 
+    mergedRegions = {regionChange} # Create an empty set to store the regions we've merged
+    oldNeighbors = copy.deepcopy(childAdList[regionChange]) # Store the old neighbors of the region we're about to change 
+    newRegionTuple = (regionChange[0], color) # Create a new tuple with the old index and the new color 
     mergedRegionNeighbors = list() # Create an empty list to store the merged region's neighbors
     newNeighbors = set()
-    for (neighborName, neighborColor) in childAdList[key]: # Loop through all the neighbors of the region we're about to change
+    for (neighborName, neighborColor) in childAdList[regionChange]: # Loop through all the neighbors of the region we're about to change
         if neighborColor == color: # If the color matches 
             mergedRegions.add((neighborName, neighborColor)) # Add it to the merged regions 
             mergedRegionNeighbors.extend(childAdList[(neighborName, neighborColor)])
@@ -686,9 +717,9 @@ def getPath(app, halfwayBoard, currBoard):
     else: 
         return getPath(app, halfwayBoard.parent, currBoard) + [halfwayBoard]
 
-# TODO need to clear app.solverSolution when move to somewhere new
 # This gives out the hints to solve the board
 def printSolutionToSolveBoard(app):
+    app.displayMoves = True
     if app.solverSolution == [] or app.hintCounter > len(app.solverSolution): 
         return
     nextMove = app.solverSolution[app.hintCounter]
@@ -701,7 +732,6 @@ def BFSHelper(app):
     regionList = createRegionList(app.board)
     if len(regionList) == 1: 
         checkIfWin(app)
-        # TODO need to fix the problem of the moveCounter increasing when empty board is played
         app.movesNeededForBoard = 0
         return
     currBoard = Board(regionList, app.board)
@@ -759,7 +789,7 @@ def fasterBFS(startingd):
         if isinstance(currState, int):
             if currState > level: level = currState
         else:
-            children = createChildren(currState)
+            children = createChildrenUsingAdjacencyList(currState)
             for child in children:
                 if child not in visited:
                     if len(child) == 1: 
@@ -808,7 +838,7 @@ def calculateRegionAreas(app):
 # returns the neighbor with the greatest amount of tiles (i.e. area)
 def findConnectionWthMostArea(region):
     connectingAreas = dict() 
-    for neighbor in region.getNeighbors():
+    for neighbor in region.neighbors:
         color = neighbor.color 
         area = len(neighbor.tiles)
         connectingAreas[color] = connectingAreas.get(color, 0) + area 

@@ -2,7 +2,7 @@
 # up that region, the region's color, its edges, and also its neighboring regions
 
 class Region(object):
-    def __init__(self, name, color, tileList = None, edges=None):
+    def __init__(self, name, color, tileList, edges):
         self.name = name
         self.tiles = tileList
         self.color = color 
@@ -13,9 +13,6 @@ class Region(object):
     def __repr__(self):
         returnString = f'{self.name}'
         return returnString
-    
-    def getNeighbors(self):
-        return self.neighbors
     
     def addNeighbor(self, neighbor):
         self.neighbors.add(neighbor)

@@ -6,44 +6,20 @@ from Region import *
 
 class Board(object):
 
-    def __init__(self, listOfRegions = None, completeList = None):
+    def __init__(self, listOfRegions, completeList):
         self.regionList = listOfRegions
         self.graph = dict()
-        if completeList == None:
-            completeList = list()
-        else:
-            self.completeList = completeList
+        self.completeList = completeList
         self.children = list()
         self.parent = None
 
     def createGraph(self):
         for region in self.regionList:
-            self.graph[region.name] = region.getNeighbors()
+            self.graph[region.name] = region.neighbors
         return self.graph
-
-    def mergeRegions(self, regionToChange, color):
-        self.createGraph()
-        neighbors = regionToChange.getNeighbors()
-        for neighbor in neighbors: 
-            if neighbor.color == color:
-                return
-
-    def createChildren(self):
-        for region in self.regionList:
-            colors = region.getNeighborColors()
-            for color in colors:
-                listOfRegions = self.mergeRegions(region, color)
-                child = Board(listOfRegions)
-                self.addChild(child)
 
     def __repr__(self):
         return f'{self.regionList}'
-
-    def removeNode(self, node):
-        del self.d[node]
-    
-    def addNode(self, key, value):
-        self.d[key] = value
     
     def addChild(self, child):
         self.children.append(child)

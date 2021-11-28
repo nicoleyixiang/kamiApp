@@ -162,18 +162,6 @@ def makeChildRegionList(regionChange, color, board):
     # return newGraph
     # newBoard.graph = graph 
     return newBoard
-    
-# TODO: Instead, would it be faster to use an adjacency list that stores the names 
-# computing how to change this list, but not actually creating new objects  
-
-# Loop through each region on the board and attempt to change it to each of the 
-# neighbor's colors 
-    # Check each of the region's neighbors and if they are the same color as the 
-    # color we're changing to, then merge it with the region we're changing 
-        # we want to combine all of the neighbor's neighbors, combine all of their
-        # tiles, and name it the name of the region we "pressed" 
-        # To merge, we want to first delete the neighbor from each of the key's neighbors (that region no longer exists) 
-        # Add this region to the list and also replace each of the occurences of the old piece with this new region.
 
 '''
 BFS 
@@ -235,30 +223,3 @@ flood as much as possible '''
 program will check for each block of colors (node) how many edges with the 
 same weight exist. the node with the most edges of same weight is the 
 best next move '''
-
-
-# def newBFS(startingListOfRegions):
-#     queue = list()
-#     # visited = set()
-#     level = 1
-#     queue.append((startingListOfRegions, 0))
-#     # visited.add(level)
-
-#     while queue != []:
-#         (currState, currLevel) = queue.pop(0) 
-#         # children = createChildrenBoardsForBoard(currState)
-#         children = createChildsForBoardUsingRegionList(currState)
-#         # children = currState.getChildren()
-#         numberOfChildren = len(children)
-#         if currLevel > level: level += 1
-#         for index in range(numberOfChildren):
-#             # if len(children[index]) == 1:
-#             # TODO change to len(children[index].graph) == 1
-#             if len(children[index]) == 1:
-#                 solution = "Number of moves needed: " + str(level)
-#                 # print("Number of moves needed:", len(visited))
-#                 return solution
-#             else:
-#                 # visited.append(children[index])
-#                 # visited.add(level+1)
-#                 queue.append((children[index], level + 1))
