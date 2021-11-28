@@ -27,7 +27,6 @@ def splashScreenMode_keyPressed(app, event):
 def splashScreenMode_mousePressed(app, event):
     app.mode = "homeScreenMode"   
 
-
 ################################
 # Instructions 
 ################################
@@ -38,6 +37,9 @@ def instructionsMode_redrawAl(app,canvas):
 def instructionsMode_keyPressed(app, event):
     app.mode = "homeScreenMode"
 
+def instructionsMode_mousePressed(app, event):
+    app.mode = "homeScreenMode"
+
 ################################
 # Home Screen Mode 
 ################################
@@ -45,11 +47,11 @@ def instructionsMode_keyPressed(app, event):
 def homeScreenMode_redrawAll(app, canvas):
     canvas.create_image(200, 300, image=ImageTk.PhotoImage(app.image2))
     canvas.create_rectangle(app.width/3, app.height/4, 2*app.width/3, 
-                    1.5*app.height/4, fill = "#ACE3E8", width = 0)
+                    1.5*app.height/4, fill = "#ACE3E8", width = 1)
     canvas.create_text(1.5*app.width/3, 1.25*app.height/4, text = "DRAW",
                     font = "Hiragino 24 bold", fill = "black")
     canvas.create_rectangle(app.width/3, 2*app.height/4, 2*app.width/3, 
-                    2.5*app.height/4, fill = "#D57E7E", width = 0)
+                    2.5*app.height/4, fill = "#D57E7E", width = 1)
     canvas.create_text(1.5*app.width/3, 2.25*app.height/4, text = "PLAY",
                     font = "Hiragino 24 bold", fill = "black")
 
@@ -149,6 +151,17 @@ def drawMode_mouseDragged(app, event):
 # Levels 
 ############################
 
+def createFirstBoard(app):
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 3, 0], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+def createSecondBoard(app):
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+def createThirdBoard(app):
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 3, 3, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 1, 2, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 1, 1, 1, 2, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2, 2], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 3, 3, 3, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+def createFourthBoard(app):
+    app.board = [[2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], [2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], [2, 2, 3, 3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0], [2, 3, 3, 3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3], [3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3], [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2], [0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 2, 2], [0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2], [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]]
 
 ############################
 # Game Over 
@@ -245,14 +258,17 @@ def gameMode_redrawAll(app, canvas):
         canvas.create_rectangle(0, app.height/2-80, 
             app.width, app.height/2-10, fill = "white")
         canvas.create_text(app.width/2, app.height/2-65, 
-            text = "WON!", fill = "red")
+            text = "YOU WON!", fill = "red")
         if app.level == None: 
             canvas.create_text(app.width/2, app.height/2 - 45, 
-            text = "Press any key to return to home screen.")
+            text = "Press any key to return to home screen. Press 'r' to draw another board!")
         else:
             canvas.create_text(app.width/2, app.height/2 - 45, 
-            text = "Press any key for the next level.")
-        if exceededMoves(app):
+            text = "Press any key for the next level. Press 'r' to retry.")
+        if app.movesNeededForBoard == 0:
+            canvas.create_text(app.width/2, app.height/2 - 25,
+            text = ":)")
+        elif exceededMoves(app):
             canvas.create_text(app.width/2, app.height/2 - 25,
             text = "You used more moves than necessary, but that's ok!", 
             fill = "brown")
@@ -265,8 +281,45 @@ def gameMode_redrawAll(app, canvas):
         anchor = "nw")
     printInfo(app, canvas)
 
+def gameMode_keyPressed(app, event):
+    if app.win:
+        if app.level != None:
+            if event.key != "r": 
+                app.level = app.level + 1
+            if app.level == 1: createFirstBoard(app)
+            elif app.level == 2: createSecondBoard(app)
+            elif app.level == 3: createThirdBoard(app)
+            elif app.level == 4: createFourthBoard(app)  
+            elif app.level > 4: app.mode = "gameOver"
+        else: 
+            if event.key == "r":
+                createBoard(app)
+                app.mode = "drawMode"
+            else:
+                app.mode = "homeScreenMode"
+    if event.key == "1":
+        createFirstBoard(app)
+        app.level = 1
+    elif event.key == "2":
+        createSecondBoard(app)
+        app.level = 2
+    elif event.key == "3":
+        createThirdBoard(app)
+        app.level = 3
+    elif event.key == "4":
+        createFourthBoard(app)
+        app.level = 4
+    app.moveCounter = 0
+    app.movesNeededForBoard = 0
+    app.moves.clear()
+    app.solverSolution.clear()
+    app.hintCounter = 0
+    app.win = False
+    app.displayMoves = False
+
 def exceededMoves(app):
-    if app.movesNeededForBoard != 0 and app.moveCounter > app.movesNeededForBoard:
+    if (app.movesNeededForBoard != 0 and 
+        app.moveCounter > app.movesNeededForBoard):
         return True
     return False
 
@@ -295,7 +348,6 @@ def appStarted(app):
     app.margin = 100
 
     app.level = 1
-
     app.isErase = False
 
     app.timerDelay = 1000
@@ -338,6 +390,8 @@ def appStarted(app):
 
     app.displayMoves = False
     app.movesNeededForBoard = 0
+    # TODO: is it confusing that the moves needed in the middle of the game is like 
+    # the total? Should it restart instead? 
 
 def storeMove(app, tiles, color):
     app.moveCounter += 1
@@ -487,22 +541,9 @@ def isLegal(app, row, col, clickedColor):
         return False 
     return True
 
-# Hardcoding some boards for testing 
-def createFirstBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 3, 0], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-def createSecondBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-def createThirdBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 3, 3, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 1, 2, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 1, 1, 1, 2, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2, 2], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 3, 3, 3, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-def createFourthBoard(app):
-    app.board = [[2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], [2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], [2, 2, 3, 3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0], [2, 3, 3, 3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3], [3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3], [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2], [0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 2, 2], [0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2], [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]]
-
 ############################
 # Autosolver 
-###########################
+############################
 
 def getNextPosition(rows, cols, seen):
     for row in range(rows):
@@ -809,61 +850,6 @@ def giveHint(app):
     app.seen.clear()
     app.regionList = createRegionList(app.board)
     giveInstructions(app) 
-
-#############################
-# Main key pressed functions
-#############################
-
-def gameMode_keyPressed(app, event):
-    if app.win:
-        if app.level != None: 
-            app.level = app.level + 1
-            if app.level == 2: createSecondBoard(app)
-            elif app.level == 3: createThirdBoard(app)
-            elif app.level == 4: createFourthBoard(app)  
-            elif app.level > 4: app.mode = "gameOver"
-        else: 
-            app.mode = "homeScreenMode"
-        app.moveCounter = 0
-        app.moves.clear()
-        app.solverSolution.clear()
-        app.hintCounter = 0
-        app.win = False
-        app.displayMoves = False
-    elif event.key == "Space": 
-        app.drawMode = not app.drawMode
-        app.win = False
-        app.moveCounter = 0
-        app.mode = "drawMode"
-        createBoard(app)
-    elif event.key == "u": 
-        undoMove(app)
-    elif event.key == "1":
-        app.moveCounter = 0
-        createFirstBoard(app)
-    elif event.key == "2":
-        app.moveCounter = 0 
-        createSecondBoard(app)
-    elif event.key == "3":
-        app.moveCounter = 0
-        createThirdBoard(app)
-    elif event.key == "4":
-        app.moveCounter = 0 
-        createFourthBoard(app)
-    elif event.key == "h":
-        if app.solverSolution == []:
-            BFSHelper(app)
-        printSolutionToSolveBoard(app)
-        app.hintCounter += 1
-        app.moveCounter += 1
-        checkIfWin(app)
-    elif event.key == "p":
-        adlist = createAdjacencyList(createRegionList(app.board))
-        app.movesNeededForBoard = fasterBFS(adlist)
-        app.displayMoves = True
-    elif event.key == "0":
-        BFSHelper(app)
-        app.displayMoves = True
 
 def kamiApp():
     runApp(width=500, height=600)
