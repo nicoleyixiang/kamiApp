@@ -1,5 +1,5 @@
-# This represents each "region" on the board by storing the tiles that make 
-# up that region, the region's color, its edges, and also its neighboring regions
+# This represents each "region" on the board (that is, each group of tiles 
+# separated by color making up the board)
 
 class Region(object):
     def __init__(self, name, color, tileList, edges):
