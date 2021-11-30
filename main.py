@@ -190,6 +190,7 @@ def gameMode_timerFired(app):
     if app.timePassed == 200:
         app.hintButtonColor = "white"
         app.undoButtonColor = "white"
+        app.computeButtonColor = "white"
         app.timePassed = None
     if app.displayMessageTime != None:
         app.displayMessageTime += app.timerDelay
@@ -220,10 +221,9 @@ def gameMode_mousePressed(app, event):
                 app.displayMoves = False
             elif (85 <= event.x <= 215):
                 app.displayMoves = True
-                if app.moveCounter > 0 or app.movesNeededForBoard != 0: 
-                    return
-                else: 
-                    fasterBFSHelper(app)
+                app.computeButtonColor = "lightGrey"
+                app.timePassed = 0
+                fasterBFSHelper(app)
             elif (220 <= event.x <= 290):
                 app.undoButtonColor = "lightGrey"
                 app.timePassed = 0
@@ -281,13 +281,14 @@ def gameMode_redrawAll(app, canvas):
                 app.height - app.margin+30, fill = "white", width = 0.5)
     canvas.create_text(45, app.height - app.margin + 15, text = "Back", 
                 fill = "#D57E7E", font = "Hiragino")       
-    if app.moveCounter > 0 or app.movesNeededForBoard != 0:
-        canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
-                app.margin + 30, fill = "lightGrey", width = 0.5)
-    else:
-        canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
-                app.margin + 30, fill = "white", width = 0.5)
-    canvas.create_text(150, app.height-app.margin+15, text = "Compute moves!", 
+    # if app.moveCounter > 0 or app.movesNeededForBoard != 0:
+    #     canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
+    #             app.margin + 30, fill = "lightGrey", width = 0.5)
+    # else:
+    canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
+                app.margin + 30, fill = app.computeButtonColor, width = 0.5)
+    canvas.create_text(150, app.height - app.margin + 15, 
+                text = "Compute moves!", 
                 fill = "#D57E7E", font = "Hiragino")
     canvas.create_rectangle(220, app.height - app.margin, 290, app.height -
                 app.margin + 30, fill = app.undoButtonColor, width = 0.5)
@@ -416,6 +417,7 @@ def appStarted(app):
     app.undoButtonColor = "white"
     app.hintButtonColor = "white"
     app.refreshButtonColor = "white"
+    app.computeButtonColor = "white"
 
     app.displayExceededMoves = False 
     app.displayMessageTime = None
