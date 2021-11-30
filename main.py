@@ -173,12 +173,14 @@ def gameOver_redrawAll(app, canvas):
     text = "Congrats! Levels completed.",
     font = "Hiragino 20")
     canvas.create_text(app.width / 2, app.height / 2 + 50,
-    text = "Press 'r' to go back to the home screen.",
+    text = "Press any key to go back to the home screen.",
     font = "Hiragino 20")
 
 def gameOver_keyPressed(app, event):
-    if event.key == "r":
-        app.mode = "homeScreenMode"
+    app.mode = "homeScreenMode"
+
+def gameOver_mousePressed(app, event):
+    app.mode = "homeScreenMode"
 
 ############################
 # Game Mode
@@ -191,6 +193,8 @@ def gameMode_timerFired(app):
         app.hintButtonColor = "white"
         app.undoButtonColor = "white"
         app.computeButtonColor = "white"
+        app.firstButtonColor = "white"
+        app.secondButtonColor = "white"
         app.timePassed = None
     if app.displayMessageTime != None:
         app.displayMessageTime += app.timerDelay
@@ -219,11 +223,21 @@ def gameMode_mousePressed(app, event):
                 app.hintCounter = 0
                 app.win = False
                 app.displayMoves = False
-            elif (85 <= event.x <= 215):
+            elif (85 <= event.x <= 165):
                 app.displayMoves = True
                 app.computeButtonColor = "lightGrey"
                 app.timePassed = 0
                 fasterBFSHelper(app)
+            elif (170 <= event.x <= 190):
+                app.firstButtonColor = "lightGrey"
+                app.timePassed = 0
+                giveHint(app)
+                calculateConnections(app)
+            elif (195 <= event.x <= 215):
+                app.secondButtonColor = "lightGrey"
+                app.timePassed = 0
+                giveHint(app)
+                calculateRegionAreas(app)
             elif (220 <= event.x <= 290):
                 app.undoButtonColor = "lightGrey"
                 app.timePassed = 0
@@ -281,19 +295,27 @@ def gameMode_redrawAll(app, canvas):
                 app.height - app.margin+30, fill = "white", width = 0.5)
     canvas.create_text(45, app.height - app.margin + 15, text = "Back", 
                 fill = "#D57E7E", font = "Hiragino")       
-    # if app.moveCounter > 0 or app.movesNeededForBoard != 0:
-    #     canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
-    #             app.margin + 30, fill = "lightGrey", width = 0.5)
-    # else:
-    canvas.create_rectangle(85, app.height - app.margin, 215, app.height -
+    canvas.create_rectangle(85, app.height - app.margin, 165, app.height -
                 app.margin + 30, fill = app.computeButtonColor, width = 0.5)
-    canvas.create_text(150, app.height - app.margin + 15, 
-                text = "Compute moves!", 
+    canvas.create_text(125, app.height - app.margin + 15, 
+                text = "Compute!", 
                 fill = "#D57E7E", font = "Hiragino")
+    canvas.create_text(193, app.height - app.margin - 10, text = "low level:")
+    canvas.create_rectangle(170, app.height - app.margin, 190, app.height - 
+                app.margin + 30, fill = app.firstButtonColor, width = 0.5)
+    canvas.create_text(180, app.height - app.margin + 15,
+                text = "1",
+                fill = "#D57E7E", font = "Hiragino")
+    canvas.create_rectangle(195, app.height - app.margin, 215, app.height - 
+                app.margin + 30, fill = app.secondButtonColor, width = 0.5)
+    canvas.create_text(205, app.height - app.margin + 15,
+                text = "2",
+                fill = "#D57E7E", font = "Hiragino")      
     canvas.create_rectangle(220, app.height - app.margin, 290, app.height -
                 app.margin + 30, fill = app.undoButtonColor, width = 0.5)
     canvas.create_text(255, app.height - app.margin + 15, text = "Undo!",
                 fill = "#D57E7E", font = "Hiragino")
+    canvas.create_text(330, app.height - app.margin - 10, text = "high level:")
     canvas.create_rectangle(295, app.height - app.margin, 365, app.height -
                 app.margin + 30, fill = app.hintButtonColor, width = 0.5)
     canvas.create_text(330, app.height - app.margin+15, text = "Hint!", 
@@ -324,7 +346,7 @@ def gameMode_keyPressed(app, event):
             if app.level == 1: createFirstBoard(app)
             elif app.level == 2: createSecondBoard(app)
             elif app.level == 3: createThirdBoard(app)
-            elif app.level == 4: createFourthBoard(app)  
+            elif app.level == 4: createFourthBoard(app) 
             elif app.level > 4: app.mode = "gameOver"
         # If the user was previously in draw mode (i.e. playing their board)
         else: 
@@ -418,6 +440,8 @@ def appStarted(app):
     app.hintButtonColor = "white"
     app.refreshButtonColor = "white"
     app.computeButtonColor = "white"
+    app.firstButtonColor = "white"
+    app.secondButtonColor = "white"
 
     app.displayExceededMoves = False 
     app.displayMessageTime = None
@@ -506,7 +530,7 @@ def printInfo(app, canvas):
         xcoordinate = getColCoordinate(app, col)
         ycoordinate = getRowCoordinate(app, row)
         canvas.create_text(xcoordinate, ycoordinate, text = "HERE!", 
-                            fill = color, anchor = 'nw')
+                            fill = color, anchor = 'nw', font = "Hiragino 15 bold")
     if app.displayMoves:
         canvas.create_text(app.width - 15, app.height - app.margin + 30, 
         text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", 
@@ -909,21 +933,25 @@ def findRegionWithMostConnections(app):
     return bestRegion  
 
 # This finds the region with the neighbor that is the largest (i.e. the region 
-# with the neighbor that covers the most space on the screen
+# with the neighbor that covers the most space on the screen. This works best 
+# when there are a lot of regions! 
 def calculateRegionAreas(app):
     regionNeighborDict = dict()
     for region in app.regionList:
         (bestConnection, bestNumber) = findConnectionWthMostArea(region)
         regionNeighborDict[region.color] = (bestConnection, bestNumber)
-    best = 0
+    bestArea = 0
     bestKey = None
     colorToClick = None
     for key in regionNeighborDict:
-        if best < regionNeighborDict[key][1]:
-            best = regionNeighborDict[key][1]
+        if bestArea < regionNeighborDict[key][1]:
+            bestArea = regionNeighborDict[key][1]
             bestKey = key
             colorToClick = regionNeighborDict[key][0]
-    print(bestKey, best, colorToClick)
+    regionTiles = list(app.regionList[bestKey].tiles)
+    position = random.choice(regionTiles)
+    app.hintCoordinate = position
+    app.hintColor = colorToClick
 
 # This searches through each of the connecting neighbors of a given region and  
 # returns the neighbor with the greatest amount of tiles (i.e. area)
@@ -944,14 +972,15 @@ def findConnectionWthMostArea(region):
 import random 
 
 # This function prints out instructions for what a possible "next best move"
-# could be for the current board. 
-def giveInstructions(app):
+# could be for the current board. This works best when the board does not have 
+# too many regions! 
+def calculateConnections(app):
     region = findRegionWithMostConnections(app)
     color = findColorToClick(region)
-    position = random.sample(region.tiles, 1)
+    regionTiles = list(region.tiles)
+    position = random.choice(regionTiles)
     app.hintColor = color
-    app.hintCoordinate = position[0]
-    print(f'Click on {position} with color {app.colors[color]}')
+    app.hintCoordinate = position
 
 # This function finds the best color to click based on the algorithms above.
 def findColorToClick(region):
@@ -972,7 +1001,6 @@ def giveHint(app):
     app.displayHint = True
     app.seen.clear()
     app.regionList = createRegionList(app.board)
-    giveInstructions(app) 
 
 ############################
 # Run app 
