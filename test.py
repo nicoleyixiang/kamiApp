@@ -18,7 +18,6 @@ def calculateRegionAreas(app):
             colorToClick = temp[key][0]
     print(bestKey, best, colorToClick)
 
-
 def merge(self, color):
     newColor = color 
     newTiles = copy.copy(self.tiles)
@@ -101,7 +100,6 @@ def creatingChildRegionLists(regionToChange, color, regionList):
     newRegionList.append(newRegion)
     return newRegionList
 
-# TODO test out using tuples instead to make BFS faster 
 def createAdjacencyList(regionList):
     adjacency = dict() 
     for region in regionList:

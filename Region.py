@@ -7,7 +7,7 @@ class Region(object):
         self.tiles = tileList
         self.color = color 
         self.edges = edges
-        self.neighbors = set()
+        self.neighbors = list()
         self.neighborColors = list()
     
     def __repr__(self):
