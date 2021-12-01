@@ -145,23 +145,118 @@ def drawMode_timerFired(app):
     if app.timePassed == 200:
         app.refreshButtonColor = "white"
         app.timePassed = None
-    return
 
 ############################
 # Levels 
 ############################
 
 def createFirstBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 3], [0, 0, 2, 2, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 3, 0], [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+                 [0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3], 
+                 [0, 0, 2, 2, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 3], 
+                 [0, 0, 2, 2, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 3, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 3, 0], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0], 
+                 [0, 0, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 0, 3, 3, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 3, 3, 3, 1, 1, 3, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 1, 1, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createSecondBoard(app):
-    app.board = [[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    app.board = [[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 1, 1, 1, 1, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 1, 1, 1, 1, 0, 3, 3, 0, 0, 0, 0, 0, 0], 
+                 [1, 0, 0, 1, 1, 1, 1, 3, 3, 0, 0, 0, 0, 0, 0], 
+                 [1, 1, 0, 0, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0], 
+                 [1, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0], 
+                 [1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0], 
+                 [0, 1, 1, 1, 1, 0, 0, 2, 2, 1, 1, 0, 0, 0, 0], 
+                 [0, 0, 1, 1, 1, 1, 0, 2, 2, 1, 1, 1, 0, 0, 0], 
+                 [0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0], 
+                 [0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1, 1, 0], 
+                 [0, 0, 0, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 1, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 2, 2, 1, 1, 0, 0, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 0, 0, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1, 0, 0], 
+                 [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 1, 1, 1, 1, 0], 
+                 [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 1, 1, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createThirdBoard(app):
-    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 3, 3, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 1, 1, 1, 2, 0, 0, 0, 0, 0], [0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 0, 0, 0, 0], [0, 0, 0, 0, 3, 3, 1, 1, 1, 2, 2, 2, 0, 0, 0], [0, 0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 2, 0], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2, 2], [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 2, 2], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 3, 3, 3, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    app.board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [3, 2, 2, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], 
+                 [3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], 
+                 [3, 3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], 
+                 [0, 3, 3, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 3, 3, 3, 3, 1, 1, 1, 2, 0, 0, 0, 0, 0], 
+                 [0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 0, 0, 0, 0], 
+                 [0, 0, 0, 0, 3, 3, 1, 1, 1, 2, 2, 2, 0, 0, 0], 
+                 [0, 0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 2, 0, 0], 
+                 [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 2, 0], 
+                 [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2, 2], 
+                 [0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2], 
+                 [0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 3, 3, 3, 2, 2], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 3, 3, 3, 2], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
 def createFourthBoard(app):
-    app.board = [[2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], [2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], [2, 2, 3, 3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0], [2, 3, 3, 3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0], [3, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], [3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0], [3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0], [3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0], [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], [3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3], [3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3], [0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3], [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3], [0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2], [0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 2, 2], [0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2], [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]]
+    app.board = [[2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], 
+                 [2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], 
+                 [2, 2, 3, 3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 0], 
+                 [2, 3, 3, 3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0], 
+                 [3, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0], 
+                 [3, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0], 
+                 [3, 2, 2, 3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0], 
+                 [3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0], 
+                 [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], 
+                 [3, 3, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0], 
+                 [3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3], 
+                 [3, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3], 
+                 [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3], 
+                 [0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3], 
+                 [0, 0, 3, 3, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3], 
+                 [0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3], 
+                 [0, 0, 0, 0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3], 
+                 [0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3], 
+                 [0, 0, 0, 0, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2], 
+                 [0, 0, 0, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 2, 2], 
+                 [0, 0, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 2, 2, 2], 
+                 [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2], 
+                 [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2]]
 
 ############################
 # Game Over 
@@ -201,7 +296,6 @@ def gameMode_timerFired(app):
     if app.displayMessageTime == 1000:
         app.displayExceededMoves = False
         app.displayMesssageTime = None
-    return
 
 def gameMode_mousePressed(app, event):
     if app.win: return # If the board has been won already, ignore all clicks
@@ -310,13 +404,13 @@ def gameMode_redrawAll(app, canvas):
     canvas.create_text(193, app.height - app.margin - 10, text = "low level:")
     canvas.create_rectangle(170, app.height - app.margin, 190, app.height - 
                 app.margin + 30, fill = app.firstButtonColor, width = 0.5)
-    canvas.create_text(180, app.height - app.margin + 15,
-                text = "1",
+    canvas.create_text(181, app.height - app.margin + 15,
+                text = "H1",
                 fill = "#D57E7E", font = "Hiragino")
     canvas.create_rectangle(195, app.height - app.margin, 215, app.height - 
                 app.margin + 30, fill = app.secondButtonColor, width = 0.5)
-    canvas.create_text(205, app.height - app.margin + 15,
-                text = "2",
+    canvas.create_text(206, app.height - app.margin + 15,
+                text = "H2",
                 fill = "#D57E7E", font = "Hiragino")      
     canvas.create_rectangle(220, app.height - app.margin, 290, app.height -
                 app.margin + 30, fill = app.undoButtonColor, width = 0.5)
@@ -377,8 +471,7 @@ def rgbString(r, g, b):
 
 def appStarted(app):
     # Initializing images 
-    # https://www.istockphoto.com/vector/vector-abstract-blurry-pastel-colored-
-    # soft-gradient-background-gm959093634-261892056
+    # https://www.istockphoto.com/vector/vector-abstract-blurry-pastel-colored-soft-gradient-background-gm959093634-261892056
     app.image1 = app.loadImage('images/splash.jpg')
     app.image2 = app.scaleImage(app.image1, 1.8)
     # https://www.fontspace.com/aroly-font-f21303
@@ -537,7 +630,8 @@ def printInfo(app, canvas):
             text = "YOU WON!", fill = "red")
         if app.level == None: 
             canvas.create_text(app.width / 2, app.height / 2 - 45, 
-            text = "Press any key to return to home screen. Press 'r' to draw another board!")
+            text = "Press any key to return to home screen. " + 
+                    "Press 'r' to draw another board!")
         else:
             canvas.create_text(app.width / 2, app.height / 2 - 45, 
             text = "Press any key for the next level. Press 'r' to retry.")
@@ -861,7 +955,8 @@ def BFSHelper(app):
     resultingBoard = BFS(currBoard)
     app.solverSolution = getPath(app, resultingBoard, currBoard)
 
-# Learned the overall concept of BFS via https://en.wikipedia.org/wiki/Breadth-first_search 
+# Learned the overall concept of BFS via 
+# https://en.wikipedia.org/wiki/Breadth-first_search 
 # and through notes from the TA-led mini lecture "Graph Algorithms". Referenced 
 # https://www.educative.io/edpresso/how-to-implement-a-breadth-first-search-in-python
 # for the structure of a BFS algorithm in python. Applied those concepts below 
@@ -884,7 +979,7 @@ def BFS(startingBoard):
                     queue.append(child)
     return None
 
-# This is a faster BFS algorithm that uses a simpler representation of the board.
+# A faster BFS algorithm that uses a simpler representation of the board.
 # This only computes the number of moves needed, not the path. 
 def fasterBFS(startingd):
     queue = list()
@@ -898,7 +993,7 @@ def fasterBFS(startingd):
         currState = queue.pop(0) 
         # This tracks the depth of the BFS in order to determine how many 
         # moves we've applied to get to the solution. Referenced some comments
-        # from https://stackoverflow.com/questions/31247634/how-to-keep-track-of-depth-in-breadth-first-search
+        # from https://stackoverflow.com/questions/31247634/how-to-keep-track-of-depth-in-breadth-first-search 
         # to get a sense of how this can be done but did not copy code directly. 
         if isinstance(currState, int):
             if currState > level: level = currState
@@ -918,7 +1013,17 @@ def fasterBFS(startingd):
 # Low level hint system
 ########################
 
-# This returns the region on the board with the most neighboring regions 
+# This function prints out instructions for what a possible "next best move"
+# could be for the current board using the number of connections of a region
+def calculateConnections(app):
+    region = findRegionWithMostConnections(app)
+    color = findColorToClick(region)
+    regionTiles = list(region.tiles)
+    position = regionTiles[len(regionTiles)//2]
+    app.hintColor = color
+    app.hintCoordinate = position
+
+# This returns the region on the board with the most neighbors  
 def findRegionWithMostConnections(app):
     bestNumber = 0
     bestRegion = None
@@ -928,6 +1033,23 @@ def findRegionWithMostConnections(app):
             bestNumber = connections 
             bestRegion = region 
     return bestRegion  
+
+# This function finds the color to click on based on how many neighbors have the 
+# same color. The most "popular" color of a region's neighbors would be the 
+# best color to change that region to (so we can merge the largest number of 
+# regions together)
+def findColorToClick(region):
+    colorDict = dict()
+    for neighbor in region.neighbors:
+        currColor = neighbor.color
+        colorDict[currColor] = colorDict.get(currColor, 0) + 1
+    bestColor = 0
+    bestCount = 0
+    for key in colorDict:
+        if bestCount < colorDict[key]:
+            bestCount = colorDict[key]
+            bestColor = key
+    return bestColor
 
 # This finds the region with the neighbor that is the largest (i.e. the region 
 # that is connected to another color that covers the most space on the screen) 
@@ -964,33 +1086,6 @@ def findConnectionWthMostArea(region):
             bestNumber = connectingAreas[key]
             bestColor = key
     return (bestColor, bestNumber)
-
-# This function prints out instructions for what a possible "next best move"
-# could be for the current board using the numer of connections.
-def calculateConnections(app):
-    region = findRegionWithMostConnections(app)
-    color = findColorToClick(region)
-    regionTiles = list(region.tiles)
-    position = regionTiles[len(regionTiles)//2]
-    app.hintColor = color
-    app.hintCoordinate = position
-
-# This function finds the color to click on based on how many neighbors have the 
-# same color. The most "popular" color of a region's neighbors would be the 
-# best color to change that region to (so we can merge the largest number of 
-# regions together)
-def findColorToClick(region):
-    colorDict = dict()
-    for neighbor in region.neighbors:
-        currColor = neighbor.color
-        colorDict[currColor] = colorDict.get(currColor, 0) + 1
-    bestColor = 0
-    bestCount = 0
-    for key in colorDict:
-        if bestCount < colorDict[key]:
-            bestCount = colorDict[key]
-            bestColor = key
-    return bestColor
 
 # This function sets up the variables needed to compute a hint.
 def giveHint(app):

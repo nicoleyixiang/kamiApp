@@ -16,11 +16,16 @@ Click on "Compute moves" to see the fewest number of moves necessary to win the
 board in its current state, and see if you can successfully complete the 
 challenge! If you get stuck, press on the hint button to get a move completed 
 for you, and see if you can keep going to finish the rest of the puzzle within 
-the constaints of the fewest moves needed. There are two versions of hints. The
+the constraints of the fewest moves needed. There are two versions of hints. The
 low level hints will give you some suggestions for what moves you might want to 
 try, but no guarantee that they will lead you to the shortest solution! The high
 level hint button will give you the best move forward to solve the board in the 
 fewest moves needed :) 
+
+Note: you can press on the hint buttons or the compute move button in the 
+middle of solving the puzzle and the program will recompute! So, if you want to
+see the fewest number of moves needed to solve a puzzle from the beginning to 
+end, make sure to press compute before you flood any region! 
 
 Instructions to run the app: simply run main.py to start playing! Be sure to 
 have cmu_112_graphics, Graph, and Region in the same folder as main.py. 
