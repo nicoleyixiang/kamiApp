@@ -755,7 +755,9 @@ def checkIsLegal(row, col, rows, cols, color, board, edges, seen):
     # Otherwise, return true
     return True
 
-# This function searches for the tiles that make up a region on the board 
+# This function searches for the tiles that make up a region on the board. 
+# Learned graph concepts during TA led mini lecture "Graph Algorithms"
+# and applied notes I took during that lecture below to write this DFS function:
 def searchForTiles(row, col, rows, cols, color, boardList, seen, edges, region):
     region.add((row,col)) # Add it to set of seen tiles 
     seen.add((row,col))
@@ -837,9 +839,9 @@ def createChildForRegion(regionChange, color, board):
         newList[row][col] = color
     return newList
     
-# This function creates an adjacency list for a board given its regions. Forms 
-# key value pairs (each region is a key and each value is a list of its 
-# neighboring regions)
+# This function creates an adjacency list for a board given a list of its 
+# regions. Forms key value pairs (each region is a key and each value is a list 
+# of its neighboring regions)
 def createAdjacencyList(regionList):
     adjacencyList = dict() 
     # Goes through each region and sets up a key
@@ -885,7 +887,7 @@ def createChildForRegionUsingAdj(regionChange, color, adlist):
             # Add its neighbors to the merged region's neighbors
             mergedRegionNeighbors.extend(childAdjList[(neighborName, 
                                                         neighborColor)]) 
-    # Loop through each of them and add it to the newNeighbors set, 
+    # Loop through each merged region's neighbors and add it to newNeighbors, 
     # as long as it isn't one of the regions we've merged
     for neighbor in mergedRegionNeighbors: 
         if neighbor not in mergedRegions:
@@ -907,6 +909,7 @@ def createChildForRegionUsingAdj(regionChange, color, adlist):
         for neighbor in childAdjList[key]:
             if neighbor not in mergedRegions: 
                 newNeighbors.add(neighbor)
+        # Update each region's neighbors with the newly created merged region
         newNeighbors.add(newRegionTuple)
         childAdjList[key] = newNeighbors 
     return childAdjList
@@ -921,7 +924,7 @@ def getPath(app, halfwayBoard, currBoard):
     else: 
         return getPath(app, halfwayBoard.parent, currBoard) + [halfwayBoard]
 
-# This gives out the hints to solve the board
+# This gives out the hints to solve the board from the BFS algorithm
 def printSolutionToSolveBoard(app):
     app.moveCounter += 1
     # If we haven't computed the solution or we've already used up all the hints
@@ -944,7 +947,8 @@ def fasterBFSHelper(app):
     app.movesNeededForBoard += app.moveCounter
     app.displayMoves = True
 
-# This function initializes the starting node and calls BFS to find the solution
+# This function initializes the starting node and calls BFS to find the path
+# to solve the board in the fewest number of moves
 def BFSHelper(app):
     regionList = createRegionList(app.board)
     # If presented with an empty board, don't try to solve 
@@ -1073,6 +1077,7 @@ def calculateRegionAreas(app):
 
 # This searches through each of the connecting neighbors of a given region and  
 # returns the neighboring color with the greatest amount of tiles (i.e. area)
+# for that region.
 def findConnectionWthMostArea(region):
     connectingAreas = dict() 
     for neighbor in region.neighbors:
@@ -1087,7 +1092,7 @@ def findConnectionWthMostArea(region):
             bestColor = key
     return (bestColor, bestNumber)
 
-# This function sets up the variables needed to compute a hint.
+# This function sets up the variables needed to compute a low-level hint.
 def giveHint(app):
     app.displayHint = True
     app.seen.clear()
