@@ -212,6 +212,7 @@ def gameMode_mousePressed(app, event):
             app.xCoor = app.colorSelectionWidth * (boxNumber + 1)
         elif (app.height - app.margin <= event.y <= 
                 app.height - app.margin + 30):
+            app.displayHint = False
             if (10 <= event.x <= 100 and 
                 app.height - app.margin < event.y < 
                 app.height - app.margin + 15):
@@ -251,11 +252,11 @@ def gameMode_mousePressed(app, event):
                 printSolutionToSolveBoard(app)
                 checkIfWin(app)
     else: 
-        app.displayHint = False
         app.seen.clear()
         x = event.x
         y = event.y
         (row, col) = getRowCol(app, x, y)
+        app.displayHint = False
         if not app.drawMode:
             clickedColor = app.board[row][col]
             if app.currColor == clickedColor: return
@@ -264,16 +265,22 @@ def gameMode_mousePressed(app, event):
             checkIfWin(app)
             checkIfPathDeviated(app)
             if exceededMoves(app):
-                app.displayExceededMoves = True 
+                app.displayExceededMoves = True
                 app.displayMessageTime = 0
 
 # This function checks if the user has applied a move that is different from the
 # autosolver's path, so that the solution can be updated if necessary. 
 def checkIfPathDeviated(app):
+    # If the user didn't call on the autsolver, simply return 
     if app.solverSolution == []: return 
+    # If the user's move is different from the autosolver
     elif app.board != app.solverSolution[0].completeList:
+        # Clear the solver's solution so it can recompute 
         app.solverSolution.clear()
+    # If the user's move is the same from the autosolver
     elif app.board == app.solverSolution[0].completeList:
+        # Pop the first move from the autosolver, since the user has applied
+        # the move already
         app.solverSolution.pop(0)
 
 # This function draws the board and the buttons for the game mode. 
@@ -281,7 +288,7 @@ def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas) 
     canvas.create_rectangle(0, app.height - app.margin - app.cellHeight, 
             app.width, app.height, fill = "white", outline = "black")
-    yCoor = app.height-app.margin//2
+    yCoor = app.height - app.margin // 2
     colorWidth = app.width // app.numberOfColors
     for i in range(app.numberOfColors):
         xCoor = colorWidth * i 
@@ -323,22 +330,7 @@ def gameMode_redrawAll(app, canvas):
     printInfo(app, canvas)
 
 def gameMode_keyPressed(app, event):
-    if not app.win: 
-        # Shortcuts for testing purposes
-        if event.key == "1":
-            createFirstBoard(app)
-            app.level = 1
-        elif event.key == "2":
-            createSecondBoard(app)
-            app.level = 2
-        elif event.key == "3":
-            createThirdBoard(app)
-            app.level = 3
-        elif event.key == "4":
-            createFourthBoard(app)
-            app.level = 4
-        return # Ignore key presses while game is still being played 
-    else:
+    if app.win: # Only act if the board has been won
         if app.level != None: # If the user is playing the levels 
             if event.key != "r": # Clicking any other key advances to next level
                 app.level = app.level + 1
@@ -378,7 +370,8 @@ def exceededMoves(app):
 # Main App
 #################################
 
-# From the CMU 112 website (Graphics Week)
+# From the CMU 112 website (Graphics Week): 
+# https://www.cs.cmu.edu/~112/notes/notes-graphics.html
 def rgbString(r, g, b):
     return f'#{r:02x}{g:02x}{b:02x}'
 
@@ -434,6 +427,7 @@ def appStarted(app):
     app.moves = []
     app.moveCounter = 0
 
+    # Initializing the button clicking feature
     app.timerDelay = 100
     app.timePassed = None
     app.undoButtonColor = "white"
@@ -443,6 +437,7 @@ def appStarted(app):
     app.firstButtonColor = "white"
     app.secondButtonColor = "white"
 
+    # Initializing the message for when moves have been exceeded 
     app.displayExceededMoves = False 
     app.displayMessageTime = None
 
@@ -530,7 +525,7 @@ def printInfo(app, canvas):
         xcoordinate = getColCoordinate(app, col)
         ycoordinate = getRowCoordinate(app, row)
         canvas.create_text(xcoordinate, ycoordinate, text = "HERE!", 
-                            fill = color, anchor = 'nw', font = "Hiragino 15 bold")
+                fill = color, font = "Hiragino 15 bold", anchor = "w")
     if app.displayMoves:
         canvas.create_text(app.width - 15, app.height - app.margin + 30, 
         text = f'Moves needed: {app.movesNeededForBoard}', fill = "red", 
@@ -555,7 +550,7 @@ def printInfo(app, canvas):
             fill = "brown")
         else:
             canvas.create_text(app.width / 2, app.height / 2 - 25,
-            text = "You completed the board with the fewest moves needed!", 
+            text = "You completed the board with the correct number of moves!", 
             fill = "green")
 
 # This function draws the board stored in the app 
@@ -764,35 +759,37 @@ def createAdjacencyList(regionList):
 
 # This function creates the children boards given an initial adjacency list 
 # i.e. applies all the move for a given board to create new boards
-def createChildrenUsingAdjacencyList(adList):
+def createChildrenUsingAdjacencyList(adjList):
     children = list()
-    for key in adList:
+    for region in adjList:
+        # Find all the colors of its neighbors
         neighborColors = set()
-        for neighbor in adList[key]:
+        for neighbor in adjList[region]:
             neighborColors.add(neighbor[1])
+        # Loop through each color and apply the move to create the child
         for color in neighborColors:
-            childAdList = createChildForKey(key, color, adList)
-            children.append(childAdList)
+            childAdjList = createChildForRegionUsingAdj(region, color, adjList)
+            children.append(childAdjList)
     return children
 
 # This function creates a child board by taking in the adjacency list 
 # that represents the current board, the region that we wish to change,
 # and the color we wish to change it to. It then merges the appropriate 
 # regions and creates a new adjacency list representing the resulting board.
-def createChildForKey(regionChange, color, adlist):
-    childAdList = copy.deepcopy(adlist) 
+def createChildForRegionUsingAdj(regionChange, color, adlist):
+    childAdjList = copy.deepcopy(adlist) 
     mergedRegions = {regionChange} 
-    oldNeighbors = copy.deepcopy(childAdList[regionChange]) 
+    oldNeighbors = copy.deepcopy(childAdjList[regionChange]) 
     newRegionTuple = (regionChange[0], color) 
     mergedRegionNeighbors = list()
     newNeighbors = set()
     # Loop through all the neighbors of the region we're about to change
-    for (neighborName, neighborColor) in childAdList[regionChange]: 
+    for (neighborName, neighborColor) in childAdjList[regionChange]: 
         if neighborColor == color: # If the color matches 
             # Add it to the merged regions 
             mergedRegions.add((neighborName, neighborColor)) 
             # Add its neighbors to the merged region's neighbors
-            mergedRegionNeighbors.extend(childAdList[(neighborName, 
+            mergedRegionNeighbors.extend(childAdjList[(neighborName, 
                                                         neighborColor)]) 
     # Loop through each of them and add it to the newNeighbors set, 
     # as long as it isn't one of the regions we've merged
@@ -805,20 +802,20 @@ def createChildForKey(regionChange, color, adlist):
             newNeighbors.add(neighbor)
     # Delete all the merged regions from the dictionary
     for region in mergedRegions:
-        del childAdList[region]
+        del childAdjList[region]
     # Set up the new region in the dictionary
-    childAdList[newRegionTuple] = newNeighbors 
+    childAdjList[newRegionTuple] = newNeighbors 
     # Loop through each of the regions in the dictionary
-    for key in childAdList: 
+    for key in childAdjList: 
         newNeighbors = set()
         # Create a new list of neighbors containing only 
         # those that haven't been merged during the move 
-        for neighbor in childAdList[key]:
+        for neighbor in childAdjList[key]:
             if neighbor not in mergedRegions: 
                 newNeighbors.add(neighbor)
         newNeighbors.add(newRegionTuple)
-        childAdList[key] = newNeighbors 
-    return childAdList
+        childAdjList[key] = newNeighbors 
+    return childAdjList
 
 # Using recursion to get the path from the resulting board back to the parent
 def getPath(app, halfwayBoard, currBoard):
@@ -918,7 +915,7 @@ def fasterBFS(startingd):
     return 0 
 
 ########################
-# Old hint system
+# Low level hint system
 ########################
 
 # This returns the region on the board with the most neighboring regions 
@@ -933,28 +930,27 @@ def findRegionWithMostConnections(app):
     return bestRegion  
 
 # This finds the region with the neighbor that is the largest (i.e. the region 
-# with the neighbor that covers the most space on the screen. This works best 
-# when there are a lot of regions! 
+# that is connected to another color that covers the most space on the screen) 
 def calculateRegionAreas(app):
     regionNeighborDict = dict()
     for region in app.regionList:
-        (bestConnection, bestNumber) = findConnectionWthMostArea(region)
-        regionNeighborDict[region.color] = (bestConnection, bestNumber)
+        (bestColor, bestNumber) = findConnectionWthMostArea(region)
+        regionNeighborDict[region.name] = (bestColor, bestNumber)
     bestArea = 0
-    bestKey = None
-    colorToClick = None
+    bestColor = 0
+    bestKey = 0
     for key in regionNeighborDict:
         if bestArea < regionNeighborDict[key][1]:
             bestArea = regionNeighborDict[key][1]
+            bestColor = regionNeighborDict[key][0]
             bestKey = key
-            colorToClick = regionNeighborDict[key][0]
     regionTiles = list(app.regionList[bestKey].tiles)
-    position = random.choice(regionTiles)
+    position = regionTiles[len(regionTiles)//2]
     app.hintCoordinate = position
-    app.hintColor = colorToClick
+    app.hintColor = bestColor
 
 # This searches through each of the connecting neighbors of a given region and  
-# returns the neighbor with the greatest amount of tiles (i.e. area)
+# returns the neighboring color with the greatest amount of tiles (i.e. area)
 def findConnectionWthMostArea(region):
     connectingAreas = dict() 
     for neighbor in region.neighbors:
@@ -962,27 +958,27 @@ def findConnectionWthMostArea(region):
         area = len(neighbor.tiles)
         connectingAreas[color] = connectingAreas.get(color, 0) + area 
     bestNumber = 0
-    bestConnection = None
+    bestColor = 0
     for key in connectingAreas:
         if bestNumber < connectingAreas[key]:
             bestNumber = connectingAreas[key]
-            bestConnection = key
-    return (bestConnection, bestNumber)
-
-import random 
+            bestColor = key
+    return (bestColor, bestNumber)
 
 # This function prints out instructions for what a possible "next best move"
-# could be for the current board. This works best when the board does not have 
-# too many regions! 
+# could be for the current board using the numer of connections.
 def calculateConnections(app):
     region = findRegionWithMostConnections(app)
     color = findColorToClick(region)
     regionTiles = list(region.tiles)
-    position = random.choice(regionTiles)
+    position = regionTiles[len(regionTiles)//2]
     app.hintColor = color
     app.hintCoordinate = position
 
-# This function finds the best color to click based on the algorithms above.
+# This function finds the color to click on based on how many neighbors have the 
+# same color. The most "popular" color of a region's neighbors would be the 
+# best color to change that region to (so we can merge the largest number of 
+# regions together)
 def findColorToClick(region):
     colorDict = dict()
     for neighbor in region.neighbors:
@@ -996,7 +992,7 @@ def findColorToClick(region):
             bestColor = key
     return bestColor
 
-# This function gives the user a hint based on the current board.
+# This function sets up the variables needed to compute a hint.
 def giveHint(app):
     app.displayHint = True
     app.seen.clear()
